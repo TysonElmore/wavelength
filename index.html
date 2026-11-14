@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wavelength Prototype</title>
+<meta name="description" content="Clickable prototype of a camera-free WiFi sensing home security app for renters (MIST 5740 individual project).">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --ink:#1F2329; --ink2:#3D444D; --muted:#5B636E; --line:#D0D4DA; --line2:#E3E6EA; --soft:#F4F5F7;
+  --orange:#C2410C; --orangeBg:#FFEDD5; --orangeLine:#F5B98A; --orangeInk:#7C2D12;
+  --blue:#1D4ED8; --blueBg:#DBEAFE; --blueInk:#1E3A8A; --green:#166534; --greenBg:#ECFDF3;
+  --page:#E9ECF0;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--page);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;color:var(--ink);display:flex;align-items:center;justify-content:center;gap:40px;padding:24px 16px}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;cursor:pointer}
+input[type=radio],input[type=checkbox]{width:20px;height:20px;accent-color:var(--ink);margin:0;flex-shrink:0}
+input[type=range]{accent-color:var(--ink);width:100%}
+
+/* phone */
+.phone{width:390px;height:844px;background:#fff;border-radius:44px;box-shadow:0 0 0 10px #1F2329,0 30px 60px rgba(0,0,0,.25);position:relative;overflow:hidden;flex-shrink:0}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;padding:56px 20px 24px;gap:14px;scrollbar-width:none}
+.screen::-webkit-scrollbar{display:none}
+.grey{background:var(--soft)}
+@media (max-width:520px){
+  body{padding:0;display:block;background:#fff}
+  .phone{width:100%;height:100dvh;border-radius:0;box-shadow:none}
+  .screen{padding:max(20px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom))}
+  .side{display:none}
+}
+
+/* bits */
+h1{margin:0;font-size:24px;font-weight:700;line-height:1.15}
+h2{margin:0;font-size:16px;font-weight:600}
+.muted{color:var(--muted)} .ink2{color:var(--ink2)}
+.small{font-size:13px} .tiny{font-size:12px}
+.row{display:flex;align-items:center;gap:10px}
+.between{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.col{display:flex;flex-direction:column;gap:8px}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.btn{min-height:52px;border-radius:14px;border:none;background:var(--ink);color:#fff;font-size:16px;font-weight:600;display:flex;align-items:center;justify-content:center;width:100%}
+.btn.out{background:#fff;color:var(--ink);border:1.5px solid var(--ink)}
+.btn.sm{min-height:42px;font-size:14px;border-radius:10px}
+.btn.orange{background:var(--orange)}
+.link{background:none;border:none;color:var(--blue);font-weight:600;font-size:15px;min-height:44px}
+.pill{display:inline-flex;align-items:center;font-size:12px;font-weight:600;border-radius:999px;padding:4px 10px}
+.mt-auto{margin-top:auto}
+.hr{height:1px;background:var(--line2)}
+.choice{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border-radius:16px;border:1px solid var(--line);background:#fff;cursor:pointer}
+.choice.on{border:2px solid var(--ink)}
+.choice .t{font-size:16px;font-weight:600}
+.choice .d{font-size:14px;color:var(--ink2)}
+.stepper{display:flex;align-items:center;gap:12px}
+.stepper button{width:36px;height:36px;border-radius:18px;border:1px solid #B8BEC6;background:#fff;font-size:18px}
+.progress{display:flex;gap:6px}.progress span{height:4px;flex-grow:1;border-radius:2px;background:var(--line2)}.progress span.on{background:var(--ink)}
+.seg{display:flex;background:var(--soft);border-radius:10px;padding:3px}
+.seg button{border:none;background:none;font-size:13px;font-weight:600;padding:0 12px;min-height:36px;border-radius:8px}
+.seg button.on{background:var(--ink);color:#fff}
+.nav{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;background:var(--soft);border-radius:16px;padding:6px;flex-shrink:0}
+.nav button{border:none;background:none;font-size:15px;font-weight:600;min-height:44px;border-radius:12px}
+.nav button.on{background:var(--ink);color:#fff}
+.switch{appearance:none;-webkit-appearance:none;width:46px!important;height:28px!important;border-radius:14px;background:#C9CED6;position:relative;transition:background .2s;cursor:pointer}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:11px;background:#fff;transition:left .2s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.switch:checked{background:var(--ink)} .switch:checked::after{left:21px}
+select{font:inherit;font-size:15px;padding:10px 12px;border:1px solid #B8BEC6;border-radius:10px;background:#fff;min-height:44px;width:100%}
+
+/* log */
+.logrow{display:flex;align-items:center;gap:10px;padding:8px 12px;font-size:14px}
+.logrow .dot{width:10px;height:10px;border-radius:5px;flex-shrink:0}
+.logrow .time{font-size:13px;color:var(--muted);width:64px;flex-shrink:0}
+.logrow.alert{background:var(--orangeBg);border:1px solid var(--orangeLine);border-radius:12px;cursor:pointer;color:var(--orangeInk);font-weight:600}
+.tl{display:grid;grid-template-columns:74px 24px minmax(0,1fr)}
+.tl .t{font-size:14px;color:var(--muted);padding:14px 0}
+.tl .rail{display:flex;flex-direction:column;align-items:center}
+.tl .rail i{width:2px;background:var(--line2)} .tl .rail b{width:12px;height:12px;border-radius:6px}
+.tl .x{font-size:15px;padding:14px 0 14px 8px}
+
+/* overlays */
+.toast{position:absolute;left:12px;right:12px;top:12px;z-index:30;background:#fff;border-radius:18px;padding:12px 14px;box-shadow:0 10px 30px rgba(0,0,0,.18);display:flex;gap:12px;transform:translateY(-140%);transition:transform .35s cubic-bezier(.2,.9,.3,1.2);cursor:pointer}
+.toast.show{transform:translateY(0)}
+.toast .ic{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.shade{position:absolute;inset:0;background:rgba(31,35,41,.45);z-index:20;opacity:0;pointer-events:none;transition:opacity .25s}
+.shade.show{opacity:1;pointer-events:auto}
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:21;background:#fff;border-radius:24px 24px 0 0;padding:12px 20px 28px;display:flex;flex-direction:column;gap:14px;transform:translateY(105%);transition:transform .3s ease}
+.sheet.show{transform:translateY(0)}
+.lock{position:absolute;inset:0;z-index:25;background:#2B2F36;color:#fff;display:none;flex-direction:column;align-items:center;padding:90px 16px 40px;gap:8px}
+.lock.show{display:flex}
+.shake{animation:shake .5s}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.scanbox{height:300px;border-radius:24px;background:#111;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.scanbox .bar{position:absolute;left:0;right:0;height:3px;background:#22C55E;box-shadow:0 0 18px #22C55E;animation:scan 1.6s linear infinite}
+@keyframes scan{from{top:0}to{top:100%}}
+
+/* side panel */
+.side{width:300px;display:flex;flex-direction:column;gap:12px}
+.side h3{margin:0;font-size:18px}
+.side p{margin:0;font-size:14px;color:var(--ink2);line-height:1.45}
+.side .btn{min-height:44px;font-size:14px;border-radius:12px;justify-content:flex-start;padding:0 14px;gap:8px}
+.mobileDemo{display:none}
+@media (max-width:520px){.mobileDemo{display:flex;position:fixed;right:14px;bottom:96px;z-index:50;width:52px;height:52px;border-radius:26px;background:var(--orange);color:#fff;border:none;align-items:center;justify-content:center;font-weight:700;box-shadow:0 6px 16px rgba(0,0,0,.25)}}
+.demoSheet .btn{justify-content:flex-start;padding:0 14px}
+</style>
+</head>
+<body>
+
+<div class="phone" id="phone">
+  <div id="screen" class="screen"></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <div class="shade" id="shade"></div>
+  <div class="sheet" id="sheet" role="dialog" aria-modal="true"></div>
+  <div class="lock" id="lock"></div>
+</div>
+
+<aside class="side" id="side">
+  <h3>Try the prototype</h3>
+  <p>Click through the app on the left. Use these buttons to make things happen in the apartment and see how the app reacts. Your Settings change what happens.</p>
+  <button class="btn out" data-act="sim-stranger">🚪 Stranger walks in (95% sure)</button>
+  <button class="btn out" data-act="sim-quiet">🤔 Unclear visitor (72% sure)</button>
+  <button class="btn out" data-act="sim-party">🎉 Seven people show up</button>
+  <button class="btn out" data-act="sim-room">🛏️ Party guest enters your room</button>
+  <button class="btn out" data-act="sim-roommate">🏠 Roommate comes home</button>
+  <button class="btn out" data-act="lock">📱 Show lock screen</button>
+  <button class="btn out" data-act="reset">↺ Start over from the intro</button>
+  <p class="tiny muted" style="font-size:12px">A concept prototype for MIST 5740 at UGA. Nothing here senses real WiFi: everything is simulated. The floor plan comes from a LiDAR scan with photos and colors removed.</p>
+</aside>
+<button class="mobileDemo" id="mobileDemo" aria-label="Demo controls">Demo</button>
+
+<script>
+const APP_NAME = "Wavelength";
+const FR = {"HOME": "<div style=\"position: relative; width: 342px; height: 380px; flex-shrink: 0\">\n<svg width=\"342\" height=\"380\" viewBox=\"0 0 342 380\" style=\"position: absolute; left: 0; top: 0\" role=\"img\" aria-label=\"Floor plan from the apartment scan. Top: roommate's room with its closet, a bathroom, a short hall off the living room leading to their door, bathroom, laundry and utility closet, plus a small closet facing the living room. Middle: living room and kitchen, front door on the kitchen wall. Bottom: your room, then a hall beside your closet leading to your bathroom. Living room highlighted: unrecognized person. Roommate's room highlighted: roommate.\">\n<defs><pattern id=\"hatch\" width=\"6\" height=\"6\" patternUnits=\"userSpaceOnUse\" patternTransform=\"rotate(45)\"><rect width=\"6\" height=\"6\" fill=\"#E3E6EA\"></rect><line x1=\"0\" y1=\"0\" x2=\"0\" y2=\"6\" stroke=\"#8A929C\" stroke-width=\"1.5\"></line></pattern></defs>\n<polygon points=\"35.0,0.0 35.0,128.7 188.2,128.7 188.2,116.8 214.0,116.8 214.0,63.4 165.7,63.4 165.7,0.0\" fill=\"#DBEAFE\" stroke=\"#8A929C\" stroke-width=\"2\"></polygon>\n<polygon points=\"165.7,0.0 231.0,0.0 231.0,63.4 165.7,63.4\" fill=\"#DBEAFE\" stroke=\"#8A929C\" stroke-width=\"2\"></polygon>\n<polygon points=\"231.0,0.0 339.9,0.0 339.9,63.4 231.0,63.4\" fill=\"#FFFFFF\" stroke=\"#8A929C\" stroke-width=\"2\"></polygon>\n<polygon points=\"214.0,63.4 214.0,103.8 254.8,103.8 254.8,128.7 294.4,128.7 294.4,63.4\" fill=\"#FFFFFF\" stroke=\"#8A929C\" stroke-width=\"2\"></polygon>\n<polygon points=\"214.0,103.8 254.8,103.8 254.8,142.6 214.0,142.6\" fill=\"#FFFFFF\" stroke=\"#8A929C\" stroke-width=\"2\"></polygon>\n<polygon points=\"188.2,116.8 214.0,116.8 214.0,142.6 188.2,142.6\" fill=\"#FFFFFF\" stroke=\"#8A929C\" stroke-width=\"2\"></polygon>\n<polygon points=\"294.4,63.4 339.9,63.4 339.9,128.7 294.4,128.7\" fill=\"#FFFFFF\" stroke=\"#8A929C\" stroke-width=\"2\"></polygon>\n<polygon points=\"2.5,129.9 54.8,129.9 54.8,253.4 2.5,253.4\" fill=\"#FFFFFF\" stroke=\"#8A929C\" stroke-width=\"2\"></polygon>\n<polygon points=\"54.8,128.7 54.8,253.4 162.5,253.4 162.5,277.2 244.9,277.2 244.9,178.2 339.9,178.2 339.9,128.7 254.8,128.7 254.8,142.6 188.2,142.6 188.2,128.7\" fill=\"#FFEDD5\" stroke=\"#8A929C\" stroke-width=\"2\"></polygon>\n<polygon points=\"244.9,178.2 339.9,178.2 339.9,277.2 244.9,277.2\" fill=\"#FFFFFF\" stroke=\"#8A929C\" stroke-width=\"2\"></polygon>\n<polygon points=\"35.0,253.4 162.5,253.4 162.5,380.2 35.0,380.2\" fill=\"#FFFFFF\" stroke=\"#8A929C\" stroke-width=\"2\"></polygon>\n<polygon points=\"162.5,277.2 238.9,277.2 238.9,318.8 162.5,318.8\" fill=\"#FFFFFF\" stroke=\"#8A929C\" stroke-width=\"2\"></polygon>\n<polygon points=\"162.5,318.8 238.9,318.8 238.9,380.2 162.5,380.2\" fill=\"#FFFFFF\" stroke=\"#8A929C\" stroke-width=\"2\"></polygon>\n<polygon points=\"238.9,277.2 339.9,277.2 339.9,380.2 238.9,380.2\" fill=\"#FFFFFF\" stroke=\"#8A929C\" stroke-width=\"2\"></polygon>\n<text x=\"42.9\" y=\"17.1\" font-family=\"Inter, system-ui, sans-serif\" font-size=\"12\" font-weight=\"600\" fill=\"#1E3A8A\">Roommate's room</text>\n<text x=\"173.6\" y=\"17.1\" font-family=\"Inter, system-ui, sans-serif\" font-size=\"12\" font-weight=\"600\" fill=\"#1E3A8A\">Closet</text>\n<text x=\"238.9\" y=\"17.1\" font-family=\"Inter, system-ui, sans-serif\" font-size=\"12\" font-weight=\"600\" fill=\"#3D444D\">Bathroom</text>\n<text x=\"229.0\" y=\"80.5\" font-family=\"Inter, system-ui, sans-serif\" font-size=\"12\" font-weight=\"600\" fill=\"#3D444D\">Hall</text>\n<text x=\"219.1\" y=\"116.9\" font-family=\"Inter, system-ui, sans-serif\" font-size=\"8.5\" font-weight=\"600\" fill=\"#3D444D\">Utility</text>\n<text x=\"189.4\" y=\"126.8\" font-family=\"Inter, system-ui, sans-serif\" font-size=\"7\" font-weight=\"600\" fill=\"#3D444D\">Closet</text>\n<text x=\"298.3\" y=\"79.3\" font-family=\"Inter, system-ui, sans-serif\" font-size=\"8.5\" font-weight=\"600\" fill=\"#3D444D\">Laundry</text>\n<text x=\"11.2\" y=\"144.6\" font-family=\"Inter, system-ui, sans-serif\" font-size=\"8.5\" font-weight=\"600\" fill=\"#3D444D\">Balcony</text>\n<text x=\"62.7\" y=\"145.4\" font-family=\"Inter, system-ui, sans-serif\" font-size=\"12\" font-weight=\"600\" fill=\"#7C2D12\">Living room</text>\n<text x=\"250.8\" y=\"195.3\" font-family=\"Inter, system-ui, sans-serif\" font-size=\"12\" font-weight=\"600\" fill=\"#3D444D\">Kitchen</text>\n<text x=\"42.9\" y=\"270.6\" font-family=\"Inter, system-ui, sans-serif\" font-size=\"12\" font-weight=\"600\" fill=\"#3D444D\">Your room</text>\n<text x=\"169.6\" y=\"294.3\" font-family=\"Inter, system-ui, sans-serif\" font-size=\"12\" font-weight=\"600\" fill=\"#3D444D\">Hall</text>\n<text x=\"169.6\" y=\"335.9\" font-family=\"Inter, system-ui, sans-serif\" font-size=\"12\" font-weight=\"600\" fill=\"#3D444D\">Closet</text>\n<text x=\"246.8\" y=\"294.3\" font-family=\"Inter, system-ui, sans-serif\" font-size=\"12\" font-weight=\"600\" fill=\"#3D444D\">Bathroom</text>\n<line x1=\"245.6\" y1=\"178.2\" x2=\"245.6\" y2=\"276.4\" stroke=\"#FFFFFF\" stroke-width=\"3\"></line><line x1=\"245.6\" y1=\"178.2\" x2=\"245.6\" y2=\"276.4\" stroke=\"#B8BEC6\" stroke-width=\"1.5\" stroke-dasharray=\"3 4\"></line>\n<line x1=\"245.6\" y1=\"178.2\" x2=\"339.1\" y2=\"178.2\" stroke=\"#FFFFFF\" stroke-width=\"3\"></line><line x1=\"245.6\" y1=\"178.2\" x2=\"339.1\" y2=\"178.2\" stroke=\"#B8BEC6\" stroke-width=\"1.5\" stroke-dasharray=\"3 4\"></line>\n<line x1=\"255.9\" y1=\"128.7\" x2=\"293.2\" y2=\"128.7\" stroke=\"#FFFFFF\" stroke-width=\"4\"></line>\n<line x1=\"214.0\" y1=\"72.1\" x2=\"214.0\" y2=\"97.0\" stroke=\"#FFFFFF\" stroke-width=\"4\"></line><line x1=\"214.0\" y1=\"72.1\" x2=\"214.0\" y2=\"97.0\" stroke=\"#8A929C\" stroke-width=\"2\" stroke-dasharray=\"4 3\"></line>\n<line x1=\"339.9\" y1=\"135.8\" x2=\"339.9\" y2=\"161.6\" stroke=\"#FFFFFF\" stroke-width=\"4\"></line><line x1=\"339.9\" y1=\"135.8\" x2=\"339.9\" y2=\"161.6\" stroke=\"#8A929C\" stroke-width=\"2\" stroke-dasharray=\"4 3\"></line>\n</svg>\n<span style=\"position: absolute; left: 62.7px; top: 209.9px; font-size: 12px; font-weight: 600; color: #FFFFFF; background: #C2410C; border-radius: 999px; padding: 4px 10px\">Unrecognized</span>\n<span style=\"position: absolute; left: 44.9px; top: 99.0px; font-size: 12px; font-weight: 600; color: #FFFFFF; background: #1D4ED8; border-radius: 999px; padding: 4px 10px\">Roommate</span>\n<div style=\"position: absolute; left: 268.6px; top: 145.7px; font-size: 11px; color: #5B636E; white-space: nowrap\">Front door</div>\n</div>\n", "REPLAY": "<div id=\"replayPlan\" style=\"position: relative; width: 342px; height: 380px; flex-shrink: 0\">\n<svg width=\"342\" height=\"380\" viewBox=\"0 0 342 380\" style=\"position: absolute; left: 0; top: 0\" role=\"img\" aria-label=\"Path of the unrecognized person: front door, living room, kitchen, back through the living room and into your room\">\n<defs><pattern id=\"hatch\" width=\"6\" height=\"6\" patternUnits=\"userSpaceOnUse\" patternTransform=\"rotate(45)\"><rect width=\"6\" height=\"6\" fill=\"#E3E6EA\"></rect><line x1=\"0\" y1=\"0\" x2=\"0\" y2=\"6\" stroke=\"#8A929C\" stroke-width=\"1.5\"></line></pattern></defs>\n<polygon points=\"35.0,0.0 35.0,128.7 188.2,128.7 188.2,116.8 214.0,116.8 214.0,63.4 165.7,63.4 165.7,0.0\" fill=\"#FFFFFF\" stroke=\"#8A929C\" stroke-width=\"2\"></polygon>\n<polygon points=\"165.7,0.0 231.0,0.0 231.0,63.4 165.7,63.4\" fill=\"#FFFFFF\" stroke=\"#8A929C\" stroke-width=\"2\"></polygon>\n<polygon points=\"231.0,0.0 339.9,0.0 339.9,63.4 231.0,63.4\" fill=\"#FFFFFF\" stroke=\"#8A929C\" stroke-width=\"2\"></polygon>\n<polygon points=\"214.0,63.4 214.0,103.8 254.8,103.8 254.8,128.7 294.4,128.7 294.4,63.4\" fill=\"#FFFFFF\" stroke=\"#8A929C\" stroke-width=\"2\"></polygon>\n<polygon points=\"214.0,103.8 254.8,103.8 254.8,142.6 214.0,142.6\" fill=\"#FFFFFF\" stroke=\"#8A929C\" stroke-width=\"2\"></polygon>\n<polygon points=\"188.2,116.8 214.0,116.8 214.0,142.6 188.2,142.6\" fill=\"#FFFFFF\" stroke=\"#8A929C\" stroke-width=\"2\"></polygon>\n<polygon points=\"294.4,63.4 339.9,63.4 339.9,128.7 294.4,128.7\" fill=\"#FFFFFF\" stroke=\"#8A929C\" stroke-width=\"2\"></polygon>\n<polygon points=\"2.5,129.9 54.8,129.9 54.8,253.4 2.5,253.4\" fill=\"#FFFFFF\" stroke=\"#8A929C\" stroke-width=\"2\"></polygon>\n<polygon points=\"54.8,128.7 54.8,253.4 162.5,253.4 162.5,277.2 244.9,277.2 244.9,178.2 339.9,178.2 339.9,128.7 254.8,128.7 254.8,142.6 188.2,142.6 188.2,128.7\" fill=\"#FFFFFF\" stroke=\"#8A929C\" stroke-width=\"2\"></polygon>\n<polygon points=\"244.9,178.2 339.9,178.2 339.9,277.2 244.9,277.2\" fill=\"#FFFFFF\" stroke=\"#8A929C\" stroke-width=\"2\"></polygon>\n<polygon points=\"35.0,253.4 162.5,253.4 162.5,380.2 35.0,380.2\" fill=\"#FFFFFF\" stroke=\"#8A929C\" stroke-width=\"2\"></polygon>\n<polygon points=\"162.5,277.2 238.9,277.2 238.9,318.8 162.5,318.8\" fill=\"#FFFFFF\" stroke=\"#8A929C\" stroke-width=\"2\"></polygon>\n<polygon points=\"162.5,318.8 238.9,318.8 238.9,380.2 162.5,380.2\" fill=\"#FFFFFF\" stroke=\"#8A929C\" stroke-width=\"2\"></polygon>\n<polygon points=\"238.9,277.2 339.9,277.2 339.9,380.2 238.9,380.2\" fill=\"#FFFFFF\" stroke=\"#8A929C\" stroke-width=\"2\"></polygon>\n<text x=\"42.9\" y=\"17.1\" font-family=\"Inter, system-ui, sans-serif\" font-size=\"12\" font-weight=\"600\" fill=\"#3D444D\">Roommate's room</text>\n<text x=\"173.6\" y=\"17.1\" font-family=\"Inter, system-ui, sans-serif\" font-size=\"12\" font-weight=\"600\" fill=\"#3D444D\">Closet</text>\n<text x=\"238.9\" y=\"17.1\" font-family=\"Inter, system-ui, sans-serif\" font-size=\"12\" font-weight=\"600\" fill=\"#3D444D\">Bathroom</text>\n<text x=\"229.0\" y=\"80.5\" font-family=\"Inter, system-ui, sans-serif\" font-size=\"12\" font-weight=\"600\" fill=\"#3D444D\">Hall</text>\n<text x=\"219.1\" y=\"116.9\" font-family=\"Inter, system-ui, sans-serif\" font-size=\"8.5\" font-weight=\"600\" fill=\"#3D444D\">Utility</text>\n<text x=\"189.4\" y=\"126.8\" font-family=\"Inter, system-ui, sans-serif\" font-size=\"7\" font-weight=\"600\" fill=\"#3D444D\">Closet</text>\n<text x=\"298.3\" y=\"79.3\" font-family=\"Inter, system-ui, sans-serif\" font-size=\"8.5\" font-weight=\"600\" fill=\"#3D444D\">Laundry</text>\n<text x=\"11.2\" y=\"144.6\" font-family=\"Inter, system-ui, sans-serif\" font-size=\"8.5\" font-weight=\"600\" fill=\"#3D444D\">Balcony</text>\n<text x=\"62.7\" y=\"145.4\" font-family=\"Inter, system-ui, sans-serif\" font-size=\"12\" font-weight=\"600\" fill=\"#3D444D\">Living room</text>\n<text x=\"250.8\" y=\"195.3\" font-family=\"Inter, system-ui, sans-serif\" font-size=\"12\" font-weight=\"600\" fill=\"#3D444D\">Kitchen</text>\n<text x=\"42.9\" y=\"270.6\" font-family=\"Inter, system-ui, sans-serif\" font-size=\"12\" font-weight=\"600\" fill=\"#3D444D\">Your room</text>\n<text x=\"169.6\" y=\"294.3\" font-family=\"Inter, system-ui, sans-serif\" font-size=\"12\" font-weight=\"600\" fill=\"#3D444D\">Hall</text>\n<text x=\"169.6\" y=\"335.9\" font-family=\"Inter, system-ui, sans-serif\" font-size=\"12\" font-weight=\"600\" fill=\"#3D444D\">Closet</text>\n<text x=\"246.8\" y=\"294.3\" font-family=\"Inter, system-ui, sans-serif\" font-size=\"12\" font-weight=\"600\" fill=\"#3D444D\">Bathroom</text>\n<line x1=\"245.6\" y1=\"178.2\" x2=\"245.6\" y2=\"276.4\" stroke=\"#FFFFFF\" stroke-width=\"3\"></line><line x1=\"245.6\" y1=\"178.2\" x2=\"245.6\" y2=\"276.4\" stroke=\"#B8BEC6\" stroke-width=\"1.5\" stroke-dasharray=\"3 4\"></line>\n<line x1=\"245.6\" y1=\"178.2\" x2=\"339.1\" y2=\"178.2\" stroke=\"#FFFFFF\" stroke-width=\"3\"></line><line x1=\"245.6\" y1=\"178.2\" x2=\"339.1\" y2=\"178.2\" stroke=\"#B8BEC6\" stroke-width=\"1.5\" stroke-dasharray=\"3 4\"></line>\n<line x1=\"255.9\" y1=\"128.7\" x2=\"293.2\" y2=\"128.7\" stroke=\"#FFFFFF\" stroke-width=\"4\"></line>\n<line x1=\"214.0\" y1=\"72.1\" x2=\"214.0\" y2=\"97.0\" stroke=\"#FFFFFF\" stroke-width=\"4\"></line><line x1=\"214.0\" y1=\"72.1\" x2=\"214.0\" y2=\"97.0\" stroke=\"#8A929C\" stroke-width=\"2\" stroke-dasharray=\"4 3\"></line>\n<line x1=\"339.9\" y1=\"135.8\" x2=\"339.9\" y2=\"161.6\" stroke=\"#FFFFFF\" stroke-width=\"4\"></line><line x1=\"339.9\" y1=\"135.8\" x2=\"339.9\" y2=\"161.6\" stroke=\"#8A929C\" stroke-width=\"2\" stroke-dasharray=\"4 3\"></line>\n<polyline points=\"339.9,148.5 300.3,148.5 122.1,186.1 292.4,217.8 213.2,233.6 157.7,263.3 94.4,320.8\" fill=\"none\" stroke=\"#C2410C\" stroke-width=\"3\" stroke-dasharray=\"6 6\" opacity=\"0.45\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></polyline><circle cx=\"339.9\" cy=\"148.5\" r=\"6\" fill=\"#C2410C\"></circle><circle cx=\"94.4\" cy=\"320.8\" r=\"9\" fill=\"#C2410C\"></circle><circle cx=\"94.4\" cy=\"320.8\" r=\"4\" fill=\"#FFFFFF\"></circle>\n</svg>\n<div style=\"position: absolute; left: 283.7px; top: 159.2px; font-size: 11px; font-weight: 600; color: #FFFFFF; background: #C2410C; border-radius: 6px; padding: 2px 6px\">2:15</div>\n<div style=\"position: absolute; left: 282.5px; top: 233.6px; font-size: 11px; font-weight: 600; color: #FFFFFF; background: #C2410C; border-radius: 6px; padding: 2px 6px\">2:17</div>\n<div style=\"position: absolute; left: 62.7px; top: 338.6px; font-size: 11px; font-weight: 600; color: #FFFFFF; background: #C2410C; border-radius: 6px; padding: 2px 6px\">2:20 \u00b7 1 min</div>\n</div>\n", "V3D": "<div style=\"position: relative; width: 350px; height: 236px; background: #FAFAFB; border: 1px solid #E3E6EA; border-radius: 16px; box-sizing: border-box; overflow: hidden; flex-shrink: 0\">\n<img src=\"apt-3d.png\" width=\"350\" height=\"236\" alt=\"\" style=\"position: absolute; left: -1px; top: -1px; display: block\">\n<svg width=\"350\" height=\"236\" viewBox=\"0 0 350 236\" style=\"position: absolute; left: -1px; top: -1px\" role=\"img\" aria-label=\"3D view of the apartment from the setup scan: an unrecognized person in the living room, the roommate in their room, with footsteps from the front door\">\n<g fill=\"#C2410C\" opacity=\"0.75\"><ellipse cx=\"218.2\" cy=\"84.6\" rx=\"2.6\" ry=\"1.5\"></ellipse><ellipse cx=\"211.4\" cy=\"96.3\" rx=\"2.6\" ry=\"1.5\"></ellipse><ellipse cx=\"205.5\" cy=\"108.5\" rx=\"2.6\" ry=\"1.5\"></ellipse><ellipse cx=\"199.6\" cy=\"120.7\" rx=\"2.6\" ry=\"1.5\"></ellipse><ellipse cx=\"192.0\" cy=\"133.9\" rx=\"2.6\" ry=\"1.5\"></ellipse><ellipse cx=\"181.0\" cy=\"147.0\" rx=\"2.6\" ry=\"1.5\"></ellipse></g>\n<ellipse cx=\"165\" cy=\"161\" rx=\"15\" ry=\"7.5\" fill=\"none\" stroke=\"#C2410C\" stroke-width=\"1.5\" stroke-dasharray=\"3 2\"></ellipse><ellipse cx=\"165\" cy=\"161\" rx=\"7\" ry=\"3.5\" fill=\"#1F2329\" opacity=\"0.18\"></ellipse><rect x=\"160\" y=\"137\" width=\"10\" height=\"22\" rx=\"5\" fill=\"#C2410C\"></rect><circle cx=\"165\" cy=\"131.5\" r=\"5.5\" fill=\"#C2410C\"></circle>\n<ellipse cx=\"80.5\" cy=\"120\" rx=\"15\" ry=\"7.5\" fill=\"none\" stroke=\"#1D4ED8\" stroke-width=\"1.5\"></ellipse><ellipse cx=\"80.5\" cy=\"120\" rx=\"7\" ry=\"3.5\" fill=\"#1F2329\" opacity=\"0.18\"></ellipse><rect x=\"75.5\" y=\"96\" width=\"10\" height=\"22\" rx=\"5\" fill=\"#1D4ED8\"></rect><circle cx=\"80.5\" cy=\"90.5\" r=\"5.5\" fill=\"#1D4ED8\"></circle>\n</svg>\n<div style=\"position: absolute; left: 181px; top: 190px; font-size: 10px; font-weight: 600; color: #3D444D; background: rgba(255,255,255,.85); border-radius: 4px; padding: 1px 4px\">Your room</div>\n<div style=\"position: absolute; left: 297px; top: 136px; font-size: 10px; font-weight: 600; color: #3D444D; background: rgba(255,255,255,.85); border-radius: 4px; padding: 1px 4px\">Bath</div><div style=\"position: absolute; left: 124px; top: 14px; font-size: 10px; font-weight: 600; color: #3D444D; background: rgba(255,255,255,.85); border-radius: 4px; padding: 1px 4px\">Bath</div>\n<div style=\"position: absolute; left: 14px; top: 130px; font-size: 10px; font-weight: 600; color: #1E3A8A; background: rgba(255,255,255,.85); border-radius: 4px; padding: 1px 4px\">Roommate's room</div>\n<div style=\"position: absolute; left: 201px; top: 46px; font-size: 10px; font-weight: 600; color: #7C2D12; background: rgba(255,255,255,.85); border-radius: 4px; padding: 1px 4px\">Front door</div>\n<div style=\"position: absolute; left: 141px; top: 102px; font-size: 10px; font-weight: 600; color: #7C2D12; background: rgba(255,255,255,.85); border-radius: 4px; padding: 1px 4px\">Living room</div>\n<div style=\"position: absolute; left: 231px; top: 102px; font-size: 10px; font-weight: 600; color: #3D444D; background: rgba(255,255,255,.85); border-radius: 4px; padding: 1px 4px\">Kitchen</div>\n</div>", "VDOTS": "<div style=\"position: relative; width: 350px; height: 252px; background: #FFFFFF; border: 1px solid #E3E6EA; border-radius: 16px; box-sizing: border-box; overflow: hidden; flex-shrink: 0\" role=\"img\" aria-label=\"Point cloud of the apartment: faint dots trace the walls, one dense cluster of dots shows an unrecognized person in the living room, another shows the roommate in their room\">\n<img src=\"apt-dots.png\" width=\"350\" height=\"252\" alt=\"\" style=\"position: absolute; left: -1px; top: -1px; display: block\">\n<div style=\"position: absolute; left: 182px; top: 140px; font-size: 11px; font-weight: 600; color: #FFFFFF; background: #1F2329; border-radius: 6px; padding: 3px 7px\">Unknown \u00b7 82%</div>\n<div style=\"position: absolute; left: 96px; top: 96px; font-size: 11px; font-weight: 600; color: #1F2329; background: #FFFFFF; border: 1px solid #1F2329; border-radius: 6px; padding: 2px 6px\">Roommate \u00b7 96%</div>\n<div style=\"position: absolute; left: 228px; top: 74px; font-size: 10px; color: #5B636E\">front door</div>\n</div>"};
+const PATH_PTS = "339.9,148.5 300.3,148.5 122.1,186.1 292.4,217.8 213.2,233.6 157.7,263.3 94.4,320.8".split(" ").map(p=>p.split(",").map(Number));
+
+/* ---------- state ---------- */
+const DEFAULT = {
+  screen:"intro", intro:0,
+  who:"roommates", roomies:1, pets:true, petCount:1, see:"room", scan:"lidar",
+  tab:"live", view:"rooms",
+  s:{keep:"72", when:"away", sens:70, events:7, away:false, party:false, offYour:true, offRoommate:false, partyOff:"Tomorrow at 10:00 AM"},
+  roommateHome:false, youHome:false,
+  log:[
+    {t:"9:12 AM",  txt:"You left", c:"you"},
+    {t:"11:40 AM", txt:"Roommate home", c:"rm"},
+    {t:"1:30 PM",  txt:"Roommate left · no one home", c:"rm"},
+    {t:"2:15 PM",  txt:"Unrecognized · Living room", c:"alert", sure:82, rooms:"Living room, Kitchen · 6 min"}
+  ]
+};
+let S;
+function load(){ try{ const x=JSON.parse(localStorage.getItem("wifiapp")); if(x){S=x;return;} }catch(e){} S=structuredClone(DEFAULT); }
+function save(){ try{ localStorage.setItem("wifiapp",JSON.stringify(S)); }catch(e){} }
+load();
+
+const $=s=>document.querySelector(s);
+const col={you:"#334155",rm:"#1D4ED8",alert:"#C2410C"};
+function nowStr(){ const d=new Date(); let h=d.getHours(), m=d.getMinutes(); const ap=h>=12?"PM":"AM"; h=h%12||12; return `${h}:${String(m).padStart(2,"0")} ${ap}`; }
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+
+/* ---------- screens ---------- */
+const icons={
+  house:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M12 13v3"/><path d="M12 18.5v.01"/></svg>',
+  check:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#166534" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17 19 7"/></svg>',
+  play:'<svg width="18" height="18" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg>',
+  pause:'<svg width="18" height="18" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>',
+  back:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1D4ED8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>'
+};
+const introArt=[
+ `<svg width="230" height="200" viewBox="0 0 230 200" role="img" aria-label="A house with a hub sending WiFi waves, two people inside, and no camera"><path d="M30 95 115 30l85 65v85H30z" fill="#fff" stroke="#8A929C" stroke-width="3" stroke-linejoin="round"/><rect x="98" y="150" width="34" height="14" rx="4" fill="#1F2329"/><circle cx="125" cy="157" r="2.5" fill="#22C55E"/><path d="M95 140a28 28 0 0 1 40 0M85 130a42 42 0 0 1 60 0M75 120a56 56 0 0 1 80 0" fill="none" stroke="#1D4ED8" stroke-width="3" stroke-linecap="round"/><circle cx="62" cy="122" r="7" fill="#1D4ED8"/><rect x="56" y="131" width="12" height="28" rx="6" fill="#1D4ED8"/><circle cx="170" cy="122" r="7" fill="#334155"/><rect x="164" y="131" width="12" height="28" rx="6" fill="#334155"/><g transform="translate(176 40)"><rect x="0" y="6" width="30" height="20" rx="4" fill="none" stroke="#C2410C" stroke-width="3"/><circle cx="15" cy="16" r="5" fill="none" stroke="#C2410C" stroke-width="3"/><path d="M-4 30 36 0" stroke="#C2410C" stroke-width="3.5" stroke-linecap="round"/></g></svg>`,
+ `<div class="col" style="gap:14px">${miniNotif("Someone you don't recognize is in the living room","Buzz · 95% sure",true)}${miniNotif("Possibly someone you don't know in the kitchen","Quiet · 72% sure",false)}</div>`,
+ `<div class="col" style="gap:16px;padding:0 28px">${["No cameras inside","Data stays on the hub in your home","Detail deletes itself after 72 hours","Roommates choose what others see"].map(t=>`<div class="row" style="font-weight:600;font-size:15px"><span style="width:28px;height:28px;border-radius:14px;background:#ECFDF3;display:flex;align-items:center;justify-content:center;flex-shrink:0">${icons.check}</span>${t}</div>`).join("")}</div>`
+];
+function miniNotif(t,s,loud){return `<div style="width:280px;background:#fff;border-radius:16px;padding:12px 14px;box-shadow:0 2px 8px rgba(0,0,0,.08);border-left:4px solid ${loud?"#C2410C":"#B8BEC6"}"><div class="between tiny muted"><span>${s}</span><span>now</span></div><div style="font-size:14px;font-weight:600;margin-top:3px">${t}</div></div>`;}
+const introText=[
+ ["Know who's home, without a camera","A small hub next to your router notices movement from your WiFi signal and learns how each person in your home walks."],
+ ["Alerts only when it matters","You hear from it when someone it doesn't recognize is home and you're away. When it's very sure, your phone buzzes. When it's less sure, the alert arrives quietly."],
+ ["Your home stays private","It never sees faces, and nothing leaves your home. Next, tell us who lives with you."]
+];
+function scrIntro(){
+  const i=S.intro;
+  return `<div style="display:flex;justify-content:flex-end"><button class="link" style="color:var(--muted)" data-act="setup1">Skip</button></div>
+  <div style="height:300px;border-radius:24px;background:var(--soft);display:flex;align-items:center;justify-content:center;flex-shrink:0">${introArt[i]}</div>
+  <div class="col" style="gap:10px"><div class="small muted" style="font-weight:600">${i+1} of 3</div><h1 style="font-size:28px">${introText[i][0]}</h1><div style="font-size:16px;line-height:1.45" class="ink2">${introText[i][1]}</div></div>
+  <div class="mt-auto col" style="gap:18px">
+    <div style="display:flex;gap:8px;justify-content:center">${[0,1,2].map(k=>`<button aria-label="Slide ${k+1}" data-act="introGo" data-i="${k}" style="border:none;padding:0;width:${k===i?22:8}px;height:8px;border-radius:4px;background:${k===i?"#1F2329":"#D0D4DA"}"></button>`).join("")}</div>
+    <button class="btn" data-act="${i<2?"introNext":"setup1"}">${i<2?"Next":"Set up my home"}</button>
+  </div>`;
+}
+function progress(n){return `<div class="progress">${[1,2,3].map(k=>`<span class="${k<=n?"on":""}"></span>`).join("")}</div>`;}
+function scrSetup1(){
+  const c=(v,t,d,extra="")=>`<div class="choice ${S.who===v?"on":""}" data-act="who" data-v="${v}" role="radio" aria-checked="${S.who===v}" tabindex="0"><input type="radio" ${S.who===v?"checked":""} tabindex="-1" style="margin-top:2px"><div class="col" style="gap:4px;flex-grow:1"><span class="t">${t}</span><span class="d">${d}</span>${extra}</div></div>`;
+  const step=(k,val)=>`<div class="stepper" data-noclick><span class="small ink2">How many?</span><button aria-label="Fewer" data-act="dec" data-k="${k}">−</button><span style="font-weight:600">${val}</span><button aria-label="More" data-act="inc" data-k="${k}">+</button></div>`;
+  return `${progress(1)}
+  <div class="col" style="gap:6px"><div class="small muted" style="font-weight:600">Step 1 of 3</div><h1>Who lives here?</h1><div class="ink2" style="font-size:15px">This sets what the app shows and who gets alerts. You can change it later in Settings.</div></div>
+  ${c("alone","Just me","You get alerts about anyone else in your home.")}
+  ${c("roommates","Me and roommates","Each roommate joins on their own phone and chooses what the others can see.", S.who==="roommates"?step("roomies",S.roomies):"")}
+  ${c("access","Someone else should have access","Invite a partner, family member or friend to see alerts for your home.")}
+  <div class="card"><label class="between" style="font-size:16px;font-weight:600">Any pets?<input type="checkbox" class="switch" data-act="pets" ${S.pets?"checked":""}></label>
+  ${S.pets?step("petCount",S.petCount):""}
+  <div class="small muted">Pets move differently from people, so they won't set off alerts.</div></div>
+  <button class="btn mt-auto" data-act="${S.who==="alone"?"setup3":"setup2"}">Continue</button>`;
+}
+function scrSetup2(){
+  const o=(v,t,d)=>`<label class="row" style="align-items:flex-start;padding:6px 0;cursor:pointer"><input type="radio" name="see" data-act="see" data-v="${v}" ${S.see===v?"checked":""} style="margin-top:1px"><span class="col" style="gap:2px"><span style="font-weight:600;font-size:15px">${t}</span><span class="small muted">${d}</span></span></label>`;
+  const n=S.who==="roommates"?S.roomies:1;
+  const label=S.who==="access"?"Invite someone":`Invite your roommate${n>1?"s":""}`;
+  return `${progress(2)}
+  <div class="col" style="gap:6px"><div class="small muted" style="font-weight:600">Step 2 of 3</div><h1>${label}</h1><div class="ink2" style="font-size:15px">They join your home on their own phone. Nobody is tracked by name until they join and agree.</div></div>
+  <div class="card">${Array.from({length:n},(_,k)=>`<div class="between"><span style="font-weight:600">${S.who==="access"?"Guest":"Roommate"} ${k+1}</span><span class="pill" id="inv${k}" style="background:var(--soft);color:var(--ink2)">Not invited</span></div>`).join("")}
+  <button class="btn out sm" data-act="invite">Share invite link</button></div>
+  <div class="card" style="gap:4px"><div style="font-weight:600;margin-bottom:4px">What others in your home can see about you</div>
+  ${o("home","Just home or away","No room, no map.")}${o("room","Which room I'm in (default)","Shows the room, not where in it.")}${o("spot","Exact spot on the map","Shows where you are in the room.")}
+  <div class="small muted" style="margin-top:4px">Everyone picks their own. No one sees more than you allow.</div></div>
+  <div class="mt-auto col"><button class="btn" data-act="setup3">Continue</button><button class="link" data-act="setup1">Back</button></div>`;
+}
+function scrSetup3(){
+  const c=(v,t,badge,d,time)=>`<div class="choice ${S.scan===v?"on":""}" data-act="scanpick" data-v="${v}" role="radio" aria-checked="${S.scan===v}" tabindex="0"><input type="radio" ${S.scan===v?"checked":""} tabindex="-1" style="margin-top:2px"><div class="col" style="gap:5px"><div class="row" style="gap:8px"><span class="t">${t}</span>${badge?`<span class="pill" style="background:var(--greenBg);color:var(--green)">${badge}</span>`:""}</div><span class="d">${d}</span>${time?`<span class="small muted">${time}</span>`:""}</div></div>`;
+  return `${progress(3)}
+  <div class="col" style="gap:6px"><div class="small muted" style="font-weight:600">Step 3 of 3 · Optional</div><h1>Map your home</h1><div class="ink2" style="font-size:15px">A quick scan gives you the 3D map and makes it more accurate about which room someone is in.</div></div>
+  ${c("lidar","Scan with LiDAR","Your phone has it","Walk slowly through each room with your camera pointed at the walls.","About 5 minutes")}
+  ${c("photos","Take photos instead","","No LiDAR? Take photos around each room and the app stitches them into a 3D map.","About 10 to 15 minutes")}
+  ${c("skip","Skip for now","","You still get alerts and the room and dot views. You can scan later in Settings.","")}
+  <div class="row card small ink2" style="flex-direction:row;padding:12px">🔒 Only the shape of your rooms is kept. Photos and colors are deleted after the map is built.</div>
+  <div class="mt-auto col"><button class="btn" data-act="startScan">${S.scan==="skip"?"Finish setup":"Start scan"}</button><button class="link" data-act="${S.who==="alone"?"setup1":"setup2"}">Back</button></div>`;
+}
+function scrScanning(){
+  return `<div class="col" style="gap:6px"><h1>Scanning…</h1><div class="ink2" style="font-size:15px">${S.scan==="lidar"?"Walk slowly through each room.":"Take photos around each room."}</div></div>
+  <div class="scanbox"><div class="bar"></div><img src="apt-3d.png" alt="" style="width:100%;opacity:.0;transition:opacity 2.5s" id="scanImg"></div>
+  <div class="col"><div class="between small"><span>Building your map</span><span id="scanPct">0%</span></div><div style="height:8px;border-radius:4px;background:var(--line2)"><div id="scanFill" style="height:8px;width:0;border-radius:4px;background:var(--ink);transition:width .2s"></div></div></div>
+  <div class="small muted">Shapes only. Photos and colors are deleted when it's done.</div>`;
+}
+function header(title,sub,withSeg){
+  return `<div style="display:flex;align-items:flex-end;justify-content:space-between;flex-shrink:0">
+   <div class="col" style="gap:2px"><h1 style="font-size:22px">${title}</h1><div class="row small ink2" style="gap:6px"><span style="width:8px;height:8px;border-radius:4px;background:${S.s.party?"#B45309":"#166534"}"></span>${sub}</div></div>
+   ${withSeg?`<div class="seg">${[["rooms","Rooms"],["3d","3D"],["dots","Dots"]].map(([v,t])=>`<button class="${S.view===v?"on":""}" data-act="view" data-v="${v}">${t}</button>`).join("")}</div>`:""}</div>`;
+}
+function nav(){return `<div class="nav mt-auto">${[["live","Live"],["log","Log"],["settings","Settings"]].map(([v,t])=>`<button class="${S.tab===v?"on":""}" data-act="tab" data-v="${v}">${t}</button>`).join("")}</div>`;}
+function mapView(){
+  if(S.view==="3d"){
+    if(S.scan==="skip") return `<div class="card" style="height:236px;align-items:center;justify-content:center;text-align:center"><div style="font-weight:600">No 3D map yet</div><div class="small muted">Scan your home to get the 3D view.</div><button class="btn sm out" style="width:auto;padding:0 16px" data-act="rescan">Scan now</button></div>`;
+    return `<div style="display:flex;justify-content:center">${FR.V3D}</div><div class="tiny muted">Room layout from your scan (shapes only). People from WiFi sensing. No camera.</div>`;
+  }
+  if(S.view==="dots") return `<div style="display:flex;justify-content:center">${FR.VDOTS}</div><div class="tiny muted">Each dot is where the WiFi signal bounced off something. Dense clusters are people.</div>`;
+  return `<div style="height:334px;flex-shrink:0;display:flex;justify-content:center"><div style="transform:scale(.88);transform-origin:top center;height:380px">${FR.HOME}</div></div>`;
+}
+function logRow(e,i){
+  if(e.c==="alert") return `<div class="logrow alert" data-act="replay" data-i="${i}"><span class="dot" style="background:#C2410C"></span><span class="time" style="color:inherit">${e.t}</span><span style="flex-grow:1">${esc(e.txt)}${e.quiet?" · quiet":""}</span>›</div>`;
+  return `<div class="logrow"><span class="dot" style="background:${col[e.c]||"#8A929C"}"></span><span class="time">${e.t}</span><span>${esc(e.txt)}</span></div>`;
+}
+function scrHome(){
+  const recent=S.log.map((e,i)=>[e,i]).slice(-4).reverse();
+  return `${header("Home",(S.s.party?"Party mode · ":"Live · ")+nowStr(),true)}
+  ${mapView()}
+  <div class="col" style="gap:4px"><div class="between"><h2>Today</h2><button class="link" style="min-height:32px;font-size:14px" data-act="tab" data-v="log">Full log</button></div>
+  ${recent.map(([e,i])=>logRow(e,i)).join("")}</div>
+  ${nav()}`;
+}
+function scrLog(){
+  const home=[]; if(S.roommateHome) home.push(`<span class="pill" style="background:#EFF6FF;color:var(--blueInk);font-size:13px;padding:6px 10px">Roommate · home</span>`); else home.push(`<span class="pill" style="background:var(--soft);color:var(--ink2);font-size:13px;padding:6px 10px">Roommate · away</span>`);
+  home.push(`<span class="pill" style="background:var(--soft);color:var(--ink2);font-size:13px;padding:6px 10px">You · ${S.youHome?"home":"away"}</span>`);
+  const rows=S.log.map((e,i)=>{
+    const last=i===S.log.length-1;
+    if(e.c==="alert") return `<div class="tl"><div class="t" style="color:#9A3412;font-weight:600">${e.t}</div><div class="rail"><i style="height:18px"></i><b style="background:#C2410C"></b><i style="flex-grow:1;${last?"background:#fff":""}"></i></div>
+      <div style="margin:6px 0 6px 8px;padding:12px;border-radius:12px;background:var(--orangeBg);border:1px solid var(--orangeLine)" class="col">
+       <div class="col" style="gap:2px"><span style="font-weight:600;color:var(--orangeInk)">${esc(e.txt)} · ${e.sure}% sure</span><span class="small" style="color:var(--orangeInk)">${esc(e.rooms||"")}${e.note?" · "+esc(e.note):""}</span></div>
+       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button class="btn out sm" data-act="replay" data-i="${i}">Replay path</button>${e.marked?`<span class="pill" style="justify-content:center;background:#fff;color:var(--ink2)">Marked: ${esc(e.marked)}</span>`:`<button class="btn sm orange" data-act="mark" data-i="${i}">Not okay</button>`}</div>
+       ${e.marked?"":`<button class="link" style="min-height:32px;font-size:14px;align-self:flex-start" data-act="known" data-i="${i}">That's someone I know</button>`}</div></div>`;
+    return `<div class="tl"><div class="t">${e.t}</div><div class="rail"><i style="height:18px"></i><b style="background:${col[e.c]||"#8A929C"}"></b><i style="flex-grow:1;${last?"background:#fff":""}"></i></div><div class="x">${esc(e.txt)}</div></div>`;
+  }).join("");
+  return `${header("Home log","Today")}
+  <div class="row" style="gap:8px;flex-wrap:wrap">${home.join("")}</div>
+  <div class="col" style="gap:0">${rows}</div>
+  ${nav()}`;
+}
+function scrReplay(){
+  const e=S.log[S.replayIdx]||{t:"2:15 PM"};
+  return `<div><button class="link row" style="gap:2px;padding:0" data-act="tab" data-v="log">${icons.back}Log</button></div>
+  ${header("Replay",e.t+" · "+(e.rooms||"Living room, Kitchen"))}
+  <div style="display:flex;justify-content:center;flex-shrink:0;position:relative">${FR.REPLAY}<svg id="replayDot" width="342" height="380" style="position:absolute;top:0;left:50%;transform:translateX(-50%);pointer-events:none"><circle id="rd" r="9" fill="#C2410C" stroke="#fff" stroke-width="3"/></svg></div>
+  <div class="row"><button aria-label="Play" id="playBtn" data-act="play" style="width:44px;height:44px;border-radius:22px;border:none;background:var(--ink);display:flex;align-items:center;justify-content:center;flex-shrink:0">${icons.play}</button>
+   <div class="col" style="gap:2px;flex-grow:1"><span id="replayTime" style="font-weight:600;font-size:14px">2:15 PM · front door</span><input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Replay position"></div></div>
+  <div class="row" style="padding:10px 12px;border-radius:12px;background:var(--soft)"><span class="small ink2" style="flex-grow:1">Detail deletes after ${S.s.keep==="168"?"7 days":S.s.keep+" hours"} unless you save it.</span><button class="btn out sm" style="width:auto;padding:0 14px" data-act="saveEvt">${e.saved?"Saved ✓":"Save"}</button></div>`;
+}
+function scrSettings(){
+  const s=S.s;
+  return `<div class="between"><h1 style="font-size:28px">Settings</h1></div>
+  <div class="card"><div class="between"><span style="font-weight:600">Household</span><button class="link" style="min-height:32px" data-act="editHouse">Edit</button></div>
+   <div class="between" style="font-size:15px"><span>You</span><span class="muted">Owner</span></div>
+   ${S.who==="roommates"?Array.from({length:S.roomies},(_,k)=>`<div class="hr"></div><div class="between" style="font-size:15px"><span>Roommate ${S.roomies>1?k+1:""}</span><span class="muted">Joined · sees which room</span></div>`).join(""):""}
+   ${S.pets?`<div class="hr"></div><div class="between" style="font-size:15px"><span>Pets</span><span class="muted">${S.petCount} · ignored by alerts</span></div>`:""}
+   <label class="small" style="font-weight:500;font-size:15px;margin-top:4px">What others can see about you</label>
+   <select data-act="seeSel"><option value="home" ${S.see==="home"?"selected":""}>Just home or away</option><option value="room" ${S.see==="room"?"selected":""}>Which room I'm in (default)</option><option value="spot" ${S.see==="spot"?"selected":""}>Exact spot on the map</option></select></div>
+  <div class="card" style="gap:6px"><div class="between"><span style="font-weight:600">3D home map</span><button class="link" style="min-height:32px" data-act="rescan">${S.scan==="skip"?"Scan":"Rescan"}</button></div>
+   <div class="small muted">${S.scan==="skip"?"Not scanned yet.":"Scanned with "+(S.scan==="lidar"?"LiDAR":"photos")+" · shapes only."}</div></div>
+  <div class="card"><label style="font-weight:600">Keep detailed movement for</label>
+   <select data-act="set" data-k="keep"><option value="24" ${s.keep==="24"?"selected":""}>24 hours</option><option value="72" ${s.keep==="72"?"selected":""}>72 hours (default)</option><option value="168" ${s.keep==="168"?"selected":""}>7 days</option></select>
+   <div class="small muted">After this, detail is deleted. The room-level history stays.</div></div>
+  <div class="card"><div style="font-weight:600">Alert me about strangers</div>
+   <label class="row" style="font-size:15px;cursor:pointer"><input type="radio" name="when" data-act="set" data-k="when" data-v="away" ${s.when==="away"?"checked":""}>Only when everyone's away</label>
+   <label class="row" style="font-size:15px;cursor:pointer"><input type="radio" name="when" data-act="set" data-k="when" data-v="any" ${s.when==="any"?"checked":""}>Anytime</label>
+   <div class="hr"></div>
+   <div class="between" style="font-size:15px;font-weight:500"><span>Alert when it's at least</span><span class="muted" id="sensLbl">${s.sens}% sure</span></div>
+   <input type="range" min="50" max="95" value="${s.sens}" data-act="sens" aria-label="Alert sensitivity">
+   <div class="between tiny muted"><span>More alerts</span><span>Fewer alerts</span></div>
+   <div class="small muted">Buzzes at 90% sure or more. Below that, alerts arrive quietly. Lower settings catch more but may alert on people you know.</div>
+   <div class="hr"></div>
+   <div class="between" style="font-size:15px;font-weight:500"><span>Keep stranger events for</span><span class="muted" id="evLbl">${s.events} days</span></div>
+   <input type="range" min="1" max="30" value="${s.events}" data-act="events" aria-label="Keep stranger events"></div>
+  <div class="card" style="gap:6px"><label class="between" style="font-weight:600;font-size:16px">Away mode<input type="checkbox" class="switch" data-act="toggle" data-k="away" ${s.away?"checked":""}></label><div class="small muted">Saves all movement until you turn it off.</div></div>
+  <div class="card"><label class="between" style="font-weight:600;font-size:16px">Party mode<input type="checkbox" class="switch" data-act="toggle" data-k="party" ${s.party?"checked":""}></label>
+   <div class="small muted">Pauses stranger alerts because guests are expected. Movement is still saved in case something goes missing.</div>
+   <div class="hr"></div><div style="font-size:15px;font-weight:500">Off-limits rooms (still alert)</div>
+   <label class="row" style="font-size:15px"><input type="checkbox" data-act="toggle" data-k="offYour" ${s.offYour?"checked":""}>Your room</label>
+   <label class="row" style="font-size:15px"><input type="checkbox" data-act="toggle" data-k="offRoommate" ${s.offRoommate?"checked":""}>Roommate's room</label>
+   <div class="small muted">Turns off automatically: ${esc(s.partyOff)}</div></div>
+  ${nav()}`;
+}
+
+/* ---------- render ---------- */
+let replayTimer=null;
+function render(){
+  stopReplay();
+  const el=$("#screen"); const scr=S.screen;
+  el.classList.toggle("grey", scr.startsWith("setup")||scr==="settings");
+  const map={intro:scrIntro,setup1:scrSetup1,setup2:scrSetup2,setup3:scrSetup3,scanning:scrScanning,app:()=>({live:scrHome,log:scrLog,settings:scrSettings,replay:scrReplay})[S.tab]()};
+  el.classList.toggle("grey", scr.startsWith("setup")||(scr==="app"&&S.tab==="settings"));
+  el.innerHTML=map[scr]();
+  el.scrollTop=0;
+  if(scr==="scanning") runScan();
+  if(scr==="app"&&S.tab==="replay") setupReplay();
+  save();
+}
+function go(screen,extra={}){ Object.assign(S,{screen},extra); render(); }
+
+/* ---------- scanning ---------- */
+function runScan(){
+  let p=0; const img=$("#scanImg"); setTimeout(()=>img&&(img.style.opacity=.9),200);
+  const id=setInterval(()=>{ p+=4; const f=$("#scanFill"),t=$("#scanPct"); if(!f){clearInterval(id);return;} f.style.width=p+"%"; t.textContent=p+"%";
+    if(p>=100){ clearInterval(id); setTimeout(()=>go("app",{tab:"live",view:"3d"}),400); } },110);
+}
+
+/* ---------- replay ---------- */
+const segs=(()=>{let L=0;const out=[];for(let i=1;i<PATH_PTS.length;i++){const[a,b]=[PATH_PTS[i-1],PATH_PTS[i]];const l=Math.hypot(b[0]-a[0],b[1]-a[1]);out.push({a,b,l,start:L});L+=l;}out.total=L;return out;})();
+const stops=[[0,"2:15 PM · front door"],[.28,"2:16 PM · living room"],[.5,"2:17 PM · kitchen"],[.72,"2:19 PM · living room"],[.9,"2:20 PM · your room"],[1,"2:21 PM · stayed 1 min"]];
+function posAt(f){const d=f*segs.total;for(const s of segs){if(d<=s.start+s.l){const k=(d-s.start)/s.l;return[s.a[0]+(s.b[0]-s.a[0])*k,s.a[1]+(s.b[1]-s.a[1])*k];}}return PATH_PTS[PATH_PTS.length-1];}
+function setReplay(f){const[x,y]=posAt(f);const c=$("#rd");if(!c)return;c.setAttribute("cx",x);c.setAttribute("cy",y);const s=$("#scrub");if(s)s.value=Math.round(f*1000);let lab=stops[0][1];for(const[t,l] of stops)if(f>=t)lab=l;$("#replayTime").textContent=lab;}
+function setupReplay(){setReplay(0);}
+function stopReplay(){if(replayTimer){clearInterval(replayTimer);replayTimer=null;}const b=$("#playBtn");if(b)b.innerHTML=icons.play;}
+function togglePlay(){ if(replayTimer){stopReplay();return;} let f=+$("#scrub").value/1000; if(f>=1)f=0; $("#playBtn").innerHTML=icons.pause;
+  replayTimer=setInterval(()=>{f+=.006;if(f>=1){f=1;setReplay(f);stopReplay();return;}setReplay(f);},30); }
+
+/* ---------- notifications ---------- */
+let toastTimer;
+function toast(title,sub,{loud=false,icon=icons.house,onTap=null,tag=""}={}){
+  const t=$("#toast");
+  t.innerHTML=`<div class="ic" style="background:${loud?"var(--orangeBg)":"var(--soft)"};color:${loud?"#9A3412":"#5B636E"}">${icon}</div><div class="col" style="gap:3px;flex-grow:1"><div class="between tiny muted"><span style="font-weight:600">${APP_NAME}${tag?" · "+tag:""}</span><span>now</span></div><div style="font-size:15px;font-weight:600">${title}</div><div class="small ink2">${sub}</div></div>`;
+  t.onclick=()=>{t.classList.remove("show");onTap&&onTap();};
+  t.classList.remove("show"); void t.offsetWidth; t.classList.add("show");
+  if(loud){$("#phone").classList.remove("shake");void $("#phone").offsetWidth;$("#phone").classList.add("shake");try{navigator.vibrate&&navigator.vibrate([200,100,200]);}catch(e){}}
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove("show"),6000);
+}
+function quietNote(msg){ toast("Logged, no alert",msg,{icon:"ℹ️"}); }
+function addAlert(sure,room,rooms){
+  const e={t:nowStr(),txt:"Unrecognized · "+room,c:"alert",sure,rooms,quiet:sure<90};
+  S.log.push(e); save(); return S.log.length-1;
+}
+function strangerEvent(sure,room,rooms){
+  const s=S.s; const i=addAlert(sure,room,rooms);
+  const openIt=()=>{S.screen="app";S.tab="log";render();};
+  const offLimits=(room==="Your room"&&s.offYour)||(room==="Roommate's room"&&s.offRoommate);
+  if(s.party && !offLimits){ refresh(); return quietNote("Party mode is on, so this was saved to your log without an alert."); }
+  if(!s.party && s.when==="away" && (S.youHome||S.roommateHome)){ refresh(); return quietNote("Someone is home and you only get alerts when everyone's away. Saved to your log."); }
+  if(sure<s.sens){ refresh(); return quietNote(`It was only ${sure}% sure, below your ${s.sens}% setting. Saved to your log.`); }
+  refresh();
+  if(sure>=90) toast(`Someone you don't recognize is in the ${room.toLowerCase()}`,`${sure}% sure. ${s.party?"This room is off-limits during your party.":"You're all away."} Tap to see.`,{loud:true,onTap:openIt,tag:"Buzz"});
+  else toast(`Possibly someone you don't know in the ${room.toLowerCase()}`,`${sure}% sure. No sound. Check when you have a minute.`,{onTap:openIt,tag:"Quiet"});
+}
+function refresh(){ if(S.screen==="app") render(); else save(); }
+function partySheet(){
+  const sh=$("#sheet");
+  sh.innerHTML=`<div style="align-self:center;width:40px;height:5px;border-radius:3px;background:var(--line)"></div>
+  <div class="row" style="gap:12px"><div style="width:44px;height:44px;border-radius:12px;background:#FEF3C7;display:flex;align-items:center;justify-content:center;font-size:22px">🎉</div><div class="col" style="gap:2px"><div style="font-size:20px;font-weight:700">Having people over?</div><div class="small ink2">There are 7 people in your home right now.</div></div></div>
+  <div class="ink2" style="font-size:15px">Party mode pauses stranger alerts so your phone doesn't keep buzzing. Movement is still saved in case something goes missing.</div>
+  <div class="col" style="gap:6px;padding:12px;border-radius:12px;background:var(--soft)"><div style="font-size:14px;font-weight:600">Still alert me if someone goes into:</div>
+  <label class="row"><input type="checkbox" id="pOffYour" ${S.s.offYour?"checked":""}>Your room</label><label class="row"><input type="checkbox" id="pOffRm" ${S.s.offRoommate?"checked":""}>Roommate's room</label><div class="small muted">Turns off tomorrow at 10:00 AM</div></div>
+  <button class="btn" data-act="partyOn">Turn on party mode</button><button class="link" data-act="closeSheet">Not now</button>`;
+  $("#shade").classList.add("show"); sh.classList.add("show");
+}
+function closeSheet(){ $("#shade").classList.remove("show"); $("#sheet").classList.remove("show"); }
+function showLock(){
+  const recent=S.log.filter(e=>e.c==="alert").slice(-2).reverse();
+  const d=new Date();
+  $("#lock").innerHTML=`<div style="font-size:18px;font-weight:500;color:#D7DBE0">${d.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"})}</div><div style="font-size:80px;font-weight:600;line-height:1;letter-spacing:-2px">${nowStr().replace(/ (AM|PM)/,"")}</div><div style="height:30px"></div>
+  ${recent.map(e=>`<div style="width:100%;background:${e.quiet?"rgba(255,255,255,.82)":"#fff"};color:var(--ink);border-radius:20px;padding:14px 16px;display:flex;gap:12px;cursor:pointer" data-act="lockOpen"><div style="width:40px;height:40px;border-radius:10px;background:${e.quiet?"var(--soft)":"var(--orangeBg)"};color:${e.quiet?"#5B636E":"#9A3412"};display:flex;align-items:center;justify-content:center;flex-shrink:0">${icons.house}</div><div class="col" style="gap:3px"><div class="between tiny muted"><span style="font-weight:600">${APP_NAME}${e.quiet?" · Quiet":""}</span><span>${e.t} · ${e.sure}% sure</span></div><div style="font-size:15px;font-weight:600">${e.quiet?"Possibly someone you don't know":"Someone you don't recognize"} · ${esc(e.txt.split("· ")[1]||"")}</div></div></div>`).join("")||`<div class="small" style="color:#D7DBE0">No alerts.</div>`}
+  <div class="mt-auto small" style="color:#D7DBE0;cursor:pointer" data-act="lockOpen">Tap to unlock</div>`;
+  $("#toast").classList.remove("show");
+  $("#lock").classList.add("show");
+}
+
+/* ---------- events ---------- */
+document.addEventListener("click",ev=>{
+  const el=ev.target.closest("[data-act]"); if(!el) return;
+  const a=el.dataset.act, v=el.dataset.v;
+  if(el.closest("[data-noclick]") && !["inc","dec"].includes(a)) return;
+  switch(a){
+    case "introNext": S.intro++; render(); break;
+    case "introGo": S.intro=+el.dataset.i; render(); break;
+    case "setup1": go("setup1"); break;
+    case "setup2": go("setup2"); break;
+    case "setup3": go("setup3"); break;
+    case "who": S.who=v; render(); break;
+    case "inc": case "dec": ev.stopPropagation(); { const k=el.dataset.k; S[k]=Math.max(1,Math.min(6,S[k]+(a==="inc"?1:-1))); render(); } break;
+    case "pets": S.pets=el.checked; render(); break;
+    case "see": S.see=v; save(); break;
+    case "invite": document.querySelectorAll("[id^=inv]").forEach(p=>{p.textContent="Invite sent";p.style.background="var(--orangeBg)";p.style.color="#9A3412";}); setTimeout(()=>document.querySelectorAll("[id^=inv]").forEach(p=>{p.textContent="Joined ✓";p.style.background="var(--greenBg)";p.style.color="var(--green)";}),1500); break;
+    case "scanpick": S.scan=v; render(); break;
+    case "startScan": if(S.scan==="skip") go("app",{tab:"live",view:"rooms"}); else go("scanning"); break;
+    case "rescan": if(S.scan==="skip")S.scan="lidar"; go("scanning"); break;
+    case "tab": S.tab=v; render(); break;
+    case "view": S.view=v; render(); break;
+    case "replay": S.replayIdx=+el.dataset.i; S.tab="replay"; render(); break;
+    case "play": togglePlay(); break;
+    case "saveEvt": { const e=S.log[S.replayIdx]; if(e){e.saved=true; render();} } break;
+    case "mark": S.log[+el.dataset.i].marked="Not okay, saved"; render(); break;
+    case "known": S.log[+el.dataset.i].marked="Someone I know"; render(); break;
+    case "editHouse": go("setup1"); break;
+    case "toggle": S.s[el.dataset.k]=el.checked; save(); if(el.dataset.k==="party") render(); break;
+    case "set": if(el.type==="radio"){S.s[el.dataset.k]=el.dataset.v;save();} break;
+    case "partyOn": S.s.party=true; S.s.offYour=$("#pOffYour").checked; S.s.offRoommate=$("#pOffRm").checked; closeSheet(); S.log.push({t:nowStr(),txt:"Party mode on · 7 people",c:"rm"}); S.screen="app"; S.tab="live"; render(); break;
+    case "closeSheet": closeSheet(); break;
+    case "lockOpen": $("#lock").classList.remove("show"); S.screen="app"; S.tab="log"; render(); break;
+    /* demo */
+    case "sim-stranger": strangerEvent(95,"Living room","Living room · just now"); break;
+    case "sim-quiet": strangerEvent(72,"Kitchen","Kitchen · just now"); break;
+    case "sim-room": strangerEvent(91,"Your room","Your room · just now"); break;
+    case "sim-party": if(S.s.party){quietNote("Party mode is already on.");} else partySheet(); break;
+    case "sim-roommate": S.roommateHome=true; S.log.push({t:nowStr(),txt:"Roommate home",c:"rm"}); refresh(); toast("Roommate is home","Matched by walk · 96% sure",{}); break;
+    case "lock": showLock(); break;
+    case "reset": if(confirmReset()){ try{localStorage.removeItem("wifiapp");}catch(e){} S=structuredClone(DEFAULT); closeSheet(); $("#lock").classList.remove("show"); render(); } break;
+  }
+  if(el.closest(".demoSheet")) closeSheet();
+});
+function confirmReset(){ return true; }
+document.addEventListener("input",ev=>{
+  const el=ev.target, a=el.dataset.act;
+  if(a==="sens"){S.s.sens=+el.value;$("#sensLbl").textContent=el.value+"% sure";save();}
+  if(a==="events"){S.s.events=+el.value;$("#evLbl").textContent=el.value+" days";save();}
+  if(el.id==="scrub"){stopReplay();setReplay(+el.value/1000);}
+});
+document.addEventListener("change",ev=>{
+  const el=ev.target, a=el.dataset.act;
+  if(a==="set"&&el.tagName==="SELECT"){S.s[el.dataset.k]=el.value;save();}
+  if(a==="seeSel"){S.see=el.value;save();}
+});
+document.addEventListener("keydown",ev=>{ if((ev.key==="Enter"||ev.key===" ")&&ev.target.matches(".choice")){ev.preventDefault();ev.target.click();} });
+$("#shade").addEventListener("click",()=>closeSheet());
+/* swipe on intro */
+let sx=null; $("#screen").addEventListener("touchstart",e=>{sx=e.touches[0].clientX},{passive:true});
+$("#screen").addEventListener("touchend",e=>{ if(sx===null||S.screen!=="intro")return; const dx=e.changedTouches[0].clientX-sx; if(Math.abs(dx)>50){ S.intro=Math.max(0,Math.min(2,S.intro+(dx<0?1:-1))); render(); } sx=null; });
+/* mobile demo menu */
+$("#mobileDemo").addEventListener("click",()=>{
+  const sh=$("#sheet"); sh.classList.add("demoSheet");
+  sh.innerHTML=`<div style="align-self:center;width:40px;height:5px;border-radius:3px;background:var(--line)"></div><h2>Demo controls</h2>`+[...document.querySelectorAll("#side .btn")].map(b=>b.outerHTML).join("");
+  $("#shade").classList.add("show"); sh.classList.add("show");
+});
+const _close=closeSheet; closeSheet=function(){ _close(); setTimeout(()=>$("#sheet").classList.remove("demoSheet"),300); };
+render();
+</script>
+</body>
+</html>
