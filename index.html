@@ -104,6 +104,28 @@ select{font:inherit;font-size:15px;padding:10px 12px;border:1px solid #B8BEC6;bo
 .mobileDemo{display:none}
 @media (max-width:520px){.mobileDemo{display:flex;position:fixed;right:14px;bottom:96px;z-index:50;width:52px;height:52px;border-radius:26px;background:var(--orange);color:#fff;border:none;align-items:center;justify-content:center;font-weight:700;box-shadow:0 6px 16px rgba(0,0,0,.25)}}
 .demoSheet .btn{justify-content:flex-start;padding:0 14px}
+.pick.on{background:var(--ink);color:#fff}
+.btn:disabled{opacity:.4}
+.spin{width:28px;height:28px;border-radius:14px;border:3px solid var(--line2);border-top-color:var(--ink);animation:spin 1s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.pulse1{animation:pulse 1.4s ease-in-out infinite}.pulse2{animation:pulse 1.4s ease-in-out .3s infinite}
+@keyframes pulse{0%,100%{opacity:.25}50%{opacity:1}}
+.vf{height:300px;border-radius:24px;background:#16181C;position:relative;overflow:hidden;flex-shrink:0}
+.vf .grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.07) 1px,transparent 1px);background-size:33.3% 33.3%}
+.vf .mesh{position:absolute;inset:0;background:repeating-linear-gradient(60deg,rgba(34,197,94,.35) 0 1px,transparent 1px 22px),repeating-linear-gradient(-60deg,rgba(34,197,94,.35) 0 1px,transparent 1px 22px),repeating-linear-gradient(0deg,rgba(34,197,94,.25) 0 1px,transparent 1px 19px);transition:clip-path .18s linear}
+.vfMsg{position:absolute;left:16px;right:16px;top:45%;text-align:center;color:#fff;font-size:15px;font-weight:600;text-shadow:0 1px 4px #000}
+.vfTag{position:absolute;left:12px;top:12px;background:rgba(0,0,0,.55);color:#fff;font-size:12px;font-weight:600;border-radius:999px;padding:5px 10px}
+.vf .cb{position:absolute;width:26px;height:26px;border:3px solid #fff}
+.cb.tl{left:20px;top:44px;border-right:none;border-bottom:none}.cb.tr{right:20px;top:44px;border-left:none;border-bottom:none}.cb.bl{left:20px;bottom:56px;border-right:none;border-top:none}.cb.br{right:20px;bottom:56px;border-left:none;border-top:none}
+.vf.flash::after{content:"";position:absolute;inset:0;background:#fff;animation:flash .25s ease-out forwards}
+@keyframes flash{from{opacity:.9}to{opacity:0}}
+.shutter{width:68px;height:68px;border-radius:34px;background:var(--ink);border:4px solid #fff;box-shadow:0 0 0 3px var(--ink);flex-shrink:0}
+.shutter:active{transform:scale(.94)}
+.thumbs{display:flex;align-items:center;width:96px}.thumbs span{width:26px;height:34px;border-radius:5px;background:linear-gradient(135deg,#9AA3AE,#5B636E);border:2px solid #fff;margin-left:-12px;box-shadow:0 1px 3px rgba(0,0,0,.25)}.thumbs span:first-child{margin-left:0}.thumbs b{font-size:12px;margin-left:4px;color:var(--ink2)}
+.pin{position:absolute;width:26px;height:26px;border-radius:13px;background:var(--ink);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;transform:translate(-50%,-50%);box-shadow:0 0 0 3px #fff}
+.walkfill{position:absolute;left:0;top:0;bottom:0;background:#166534;animation:walkfill 2.6s linear forwards}
+@keyframes walkfill{from{width:0}to{width:100%}}
+.bob{animation:bob .5s ease-in-out infinite alternate}@keyframes bob{to{transform:translateY(-4px)}}
 </style>
 </head>
 <body>
@@ -124,6 +146,9 @@ select{font:inherit;font-size:15px;padding:10px 12px;border:1px solid #B8BEC6;bo
   <button class="btn out" data-act="sim-party">🎉 Seven people show up</button>
   <button class="btn out" data-act="sim-room">🛏️ Party guest enters your room</button>
   <button class="btn out" data-act="sim-roommate">🏠 Roommate comes home</button>
+  <button class="btn out" data-act="sim-youhome">🙋 You come home</button>
+  <button class="btn out" data-act="sim-leave">🚶 Everyone leaves</button>
+  <button class="btn out" data-act="sim-pet">🐾 Pet wanders around</button>
   <button class="btn out" data-act="lock">📱 Show lock screen</button>
   <button class="btn out" data-act="reset">↺ Start over from the intro</button>
   <p class="tiny muted" style="font-size:12px">A concept prototype for MIST 5740 at UGA. Nothing here senses real WiFi: everything is simulated. The floor plan comes from a LiDAR scan with photos and colors removed.</p>
@@ -180,56 +205,57 @@ const introText=[
 ];
 function scrIntro(){
   const i=S.intro;
-  return `<div style="display:flex;justify-content:flex-end"><button class="link" style="color:var(--muted)" data-act="setup1">Skip</button></div>
+  return `<div style="display:flex;justify-content:flex-end"><button class="link" style="color:var(--muted)" data-act="hub">Skip</button></div>
   <div style="height:300px;border-radius:24px;background:var(--soft);display:flex;align-items:center;justify-content:center;flex-shrink:0">${introArt[i]}</div>
   <div class="col" style="gap:10px"><div class="small muted" style="font-weight:600">${i+1} of 3</div><h1 style="font-size:28px">${introText[i][0]}</h1><div style="font-size:16px;line-height:1.45" class="ink2">${introText[i][1]}</div></div>
   <div class="mt-auto col" style="gap:18px">
     <div style="display:flex;gap:8px;justify-content:center">${[0,1,2].map(k=>`<button aria-label="Slide ${k+1}" data-act="introGo" data-i="${k}" style="border:none;padding:0;width:${k===i?22:8}px;height:8px;border-radius:4px;background:${k===i?"#1F2329":"#D0D4DA"}"></button>`).join("")}</div>
-    <button class="btn" data-act="${i<2?"introNext":"setup1"}">${i<2?"Next":"Set up my home"}</button>
+    <button class="btn" data-act="${i<2?"introNext":"hub"}">${i<2?"Next":"Set up my home"}</button>
   </div>`;
 }
-function progress(n){return `<div class="progress">${[1,2,3].map(k=>`<span class="${k<=n?"on":""}"></span>`).join("")}</div>`;}
+function progress(n){return `<div class="progress">${[1,2,3,4].map(k=>`<span class="${k<=n?"on":""}"></span>`).join("")}</div>`;}
 function scrSetup1(){
   const c=(v,t,d,extra="")=>`<div class="choice ${S.who===v?"on":""}" data-act="who" data-v="${v}" role="radio" aria-checked="${S.who===v}" tabindex="0"><input type="radio" ${S.who===v?"checked":""} tabindex="-1" style="margin-top:2px"><div class="col" style="gap:4px;flex-grow:1"><span class="t">${t}</span><span class="d">${d}</span>${extra}</div></div>`;
   const step=(k,val)=>`<div class="stepper" data-noclick><span class="small ink2">How many?</span><button aria-label="Fewer" data-act="dec" data-k="${k}">−</button><span style="font-weight:600">${val}</span><button aria-label="More" data-act="inc" data-k="${k}">+</button></div>`;
-  return `${progress(1)}
-  <div class="col" style="gap:6px"><div class="small muted" style="font-weight:600">Step 1 of 3</div><h1>Who lives here?</h1><div class="ink2" style="font-size:15px">This sets what the app shows and who gets alerts. You can change it later in Settings.</div></div>
+  return `${S.returnTo?"":progress(2)}
+  <div class="col" style="gap:6px"><div class="small muted" style="font-weight:600">${S.returnTo?"Edit household":"Step 2 of 4"}</div><h1>Who lives here?</h1><div class="ink2" style="font-size:15px">This sets what the app shows and who gets alerts. You can change it later in Settings.</div></div>
   ${c("alone","Just me","You get alerts about anyone else in your home.")}
   ${c("roommates","Me and roommates","Each roommate joins on their own phone and chooses what the others can see.", S.who==="roommates"?step("roomies",S.roomies):"")}
   ${c("access","Someone else should have access","Invite a partner, family member or friend to see alerts for your home.")}
   <div class="card"><label class="between" style="font-size:16px;font-weight:600">Any pets?<input type="checkbox" class="switch" data-act="pets" ${S.pets?"checked":""}></label>
   ${S.pets?step("petCount",S.petCount):""}
   <div class="small muted">Pets move differently from people, so they won't set off alerts.</div></div>
-  <button class="btn mt-auto" data-act="${S.who==="alone"?"setup3":"setup2"}">Continue</button>`;
+  <div class="mt-auto col"><button class="btn" data-act="${S.who==="alone"?(S.returnTo?"saveEdit":"setup3"):"setup2"}">${S.who==="alone"&&S.returnTo?"Save changes":"Continue"}</button>${S.returnTo?`<button class="link" data-act="saveEdit">Cancel</button>`:`<button class="link" data-act="hub">Back</button>`}</div>`;
 }
 function scrSetup2(){
   const o=(v,t,d)=>`<label class="row" style="align-items:flex-start;padding:6px 0;cursor:pointer"><input type="radio" name="see" data-act="see" data-v="${v}" ${S.see===v?"checked":""} style="margin-top:1px"><span class="col" style="gap:2px"><span style="font-weight:600;font-size:15px">${t}</span><span class="small muted">${d}</span></span></label>`;
   const n=S.who==="roommates"?S.roomies:1;
   const label=S.who==="access"?"Invite someone":`Invite your roommate${n>1?"s":""}`;
-  return `${progress(2)}
-  <div class="col" style="gap:6px"><div class="small muted" style="font-weight:600">Step 2 of 3</div><h1>${label}</h1><div class="ink2" style="font-size:15px">They join your home on their own phone. Nobody is tracked by name until they join and agree.</div></div>
-  <div class="card">${Array.from({length:n},(_,k)=>`<div class="between"><span style="font-weight:600">${S.who==="access"?"Guest":"Roommate"} ${k+1}</span><span class="pill" id="inv${k}" style="background:var(--soft);color:var(--ink2)">Not invited</span></div>`).join("")}
+  return `${S.returnTo?"":progress(3)}
+  <div class="col" style="gap:6px"><div class="small muted" style="font-weight:600">${S.returnTo?"Edit household":"Step 3 of 4"}</div><h1>${label}</h1><div class="ink2" style="font-size:15px">They join your home on their own phone. Nobody is tracked by name until they join and agree.</div></div>
+  <div class="card">${Array.from({length:n},(_,k)=>`<div class="between"><span style="font-weight:600">${S.who==="access"?"Guest":"Roommate"} ${k+1}</span><span class="pill" id="inv${k}" style="${(S.joined||0)>k?"background:var(--greenBg);color:var(--green)":"background:var(--soft);color:var(--ink2)"}">${(S.joined||0)>k?"Joined ✓":"Not invited"}</span></div>`).join("")}
   <button class="btn out sm" data-act="invite">Share invite link</button></div>
   <div class="card" style="gap:4px"><div style="font-weight:600;margin-bottom:4px">What others in your home can see about you</div>
   ${o("home","Just home or away","No room, no map.")}${o("room","Which room I'm in (default)","Shows the room, not where in it.")}${o("spot","Exact spot on the map","Shows where you are in the room.")}
   <div class="small muted" style="margin-top:4px">Everyone picks their own. No one sees more than you allow.</div></div>
-  <div class="mt-auto col"><button class="btn" data-act="setup3">Continue</button><button class="link" data-act="setup1">Back</button></div>`;
+  <div class="mt-auto col"><button class="btn" data-act="${S.returnTo?"saveEdit":"setup3"}">${S.returnTo?"Save changes":"Continue"}</button><button class="link" data-act="setup1">Back</button></div>`;
 }
 function scrSetup3(){
   const c=(v,t,badge,d,time)=>`<div class="choice ${S.scan===v?"on":""}" data-act="scanpick" data-v="${v}" role="radio" aria-checked="${S.scan===v}" tabindex="0"><input type="radio" ${S.scan===v?"checked":""} tabindex="-1" style="margin-top:2px"><div class="col" style="gap:5px"><div class="row" style="gap:8px"><span class="t">${t}</span>${badge?`<span class="pill" style="background:var(--greenBg);color:var(--green)">${badge}</span>`:""}</div><span class="d">${d}</span>${time?`<span class="small muted">${time}</span>`:""}</div></div>`;
-  return `${progress(3)}
-  <div class="col" style="gap:6px"><div class="small muted" style="font-weight:600">Step 3 of 3 · Optional</div><h1>Map your home</h1><div class="ink2" style="font-size:15px">A quick scan gives you the 3D map and makes it more accurate about which room someone is in.</div></div>
+  return `${S.returnTo?"":progress(4)}
+  <div class="col" style="gap:6px"><div class="small muted" style="font-weight:600">${S.returnTo?"Rescan":"Step 4 of 4 · Optional"}</div><h1>Map your home</h1><div class="ink2" style="font-size:15px">A quick scan gives you the 3D map and makes it more accurate about which room someone is in.</div></div>
   ${c("lidar","Scan with LiDAR","Your phone has it","Walk slowly through each room with your camera pointed at the walls.","About 5 minutes")}
   ${c("photos","Take photos instead","","No LiDAR? Take photos around each room and the app stitches them into a 3D map.","About 10 to 15 minutes")}
   ${c("skip","Skip for now","","You still get alerts and the room and dot views. You can scan later in Settings.","")}
   <div class="row card small ink2" style="flex-direction:row;padding:12px">🔒 Only the shape of your rooms is kept. Photos and colors are deleted after the map is built.</div>
-  <div class="mt-auto col"><button class="btn" data-act="startScan">${S.scan==="skip"?"Finish setup":"Start scan"}</button><button class="link" data-act="${S.who==="alone"?"setup1":"setup2"}">Back</button></div>`;
+  <div class="mt-auto col"><button class="btn" data-act="startScan">${S.scan==="skip"?(S.returnTo?"Back to Settings":"Continue"):"Start scan"}</button><button class="link" data-act="${S.returnTo?"saveEdit":(S.who==="alone"?"setup1":"setup2")}">${S.returnTo?"Cancel":"Back"}</button></div>`;
 }
 function scrScanning(){
-  return `<div class="col" style="gap:6px"><h1>Scanning…</h1><div class="ink2" style="font-size:15px">${S.scan==="lidar"?"Walk slowly through each room.":"Take photos around each room."}</div></div>
+  const n=(S.cap&&S.cap.total)||0;
+  return `<div class="col" style="gap:6px"><h1>Building your map…</h1><div class="ink2" style="font-size:15px">${S.scan==="lidar"?"Combining your room scans into one 3D map.":`Stitching your ${n} photos into a 3D map. This takes a little longer than LiDAR.`}</div></div>
   <div class="scanbox"><div class="bar"></div><img src="apt-3d.png" alt="" style="width:100%;opacity:.0;transition:opacity 2.5s" id="scanImg"></div>
-  <div class="col"><div class="between small"><span>Building your map</span><span id="scanPct">0%</span></div><div style="height:8px;border-radius:4px;background:var(--line2)"><div id="scanFill" style="height:8px;width:0;border-radius:4px;background:var(--ink);transition:width .2s"></div></div></div>
-  <div class="small muted">Shapes only. Photos and colors are deleted when it's done.</div>`;
+  <div class="col"><div class="between small"><span id="scanStage">Lining up rooms</span><span id="scanPct">0%</span></div><div style="height:8px;border-radius:4px;background:var(--line2)"><div id="scanFill" style="height:8px;width:0;border-radius:4px;background:var(--ink);transition:width .2s"></div></div></div>
+  <div class="small muted">${S.scan==="photos"?"When it's done, your photos are deleted. Only the shapes of your rooms are kept.":"Only the shapes of your rooms are kept, with no colors or photos."}</div>`;
 }
 function header(title,sub,withSeg){
   return `<div style="display:flex;align-items:flex-end;justify-content:space-between;flex-shrink:0">
@@ -239,7 +265,7 @@ function header(title,sub,withSeg){
 function nav(){return `<div class="nav mt-auto">${[["live","Live"],["log","Log"],["settings","Settings"]].map(([v,t])=>`<button class="${S.tab===v?"on":""}" data-act="tab" data-v="${v}">${t}</button>`).join("")}</div>`;}
 function mapView(){
   if(S.view==="3d"){
-    if(S.scan==="skip") return `<div class="card" style="height:236px;align-items:center;justify-content:center;text-align:center"><div style="font-weight:600">No 3D map yet</div><div class="small muted">Scan your home to get the 3D view.</div><button class="btn sm out" style="width:auto;padding:0 16px" data-act="rescan">Scan now</button></div>`;
+    if(S.scan==="skip") return `<div class="card" style="height:236px;align-items:center;justify-content:center;text-align:center"><div style="font-weight:600">No 3D map yet</div><div class="small muted">Scan your home to get the 3D view.</div><button class="btn sm out" style="width:auto;padding:0 16px" data-act="rescan" data-v="live">Scan now</button></div>`;
     return `<div style="display:flex;justify-content:center">${FR.V3D}</div><div class="tiny muted">Room layout from your scan (shapes only). People from WiFi sensing. No camera.</div>`;
   }
   if(S.view==="dots") return `<div style="display:flex;justify-content:center">${FR.VDOTS}</div><div class="tiny muted">Each dot is where the WiFi signal bounced off something. Dense clusters are people.</div>`;
@@ -318,17 +344,162 @@ function scrSettings(){
   ${nav()}`;
 }
 
+/* ---------- hub ---------- */
+function scrHub(){
+  const f=S.hubFound;
+  return `${progress(1)}
+  <div class="col" style="gap:6px"><div class="small muted" style="font-weight:600">Step 1 of 4</div><h1>Plug in your hub</h1><div class="ink2" style="font-size:15px">Put the Wavelength hub in an outlet near the middle of your home. It works next to your WiFi router, so you don't replace anything.</div></div>
+  <div style="height:190px;border-radius:24px;background:#fff;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+   <svg width="170" height="130" viewBox="0 0 170 130" aria-hidden="true"><g fill="none" stroke="${f?"#166534":"#B8BEC6"}" stroke-width="3" stroke-linecap="round"><path d="M55 38a42 42 0 0 1 60 0" class="${f?"":"pulse1"}"/><path d="M67 52a24 24 0 0 1 36 0" class="${f?"":"pulse2"}"/></g><rect x="55" y="66" width="60" height="44" rx="12" fill="#1F2329"/><circle cx="85" cy="88" r="5" fill="${f?"#22C55E":"#F59E0B"}"/><rect x="80" y="110" width="10" height="12" rx="2" fill="#5B636E"/></svg></div>
+  <div class="card" style="flex-direction:row;align-items:center;gap:12px">
+   ${f?`<div style="width:36px;height:36px;border-radius:18px;background:var(--greenBg);color:var(--green);display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0">✓</div><div class="col" style="gap:2px"><div style="font-weight:600">Hub connected</div><div class="small muted">Joined your WiFi · signal is strong in every room</div></div>`
+      :`<div class="spin"></div><div class="col" style="gap:2px"><div style="font-weight:600">Looking for your hub…</div><div class="small muted">Keep your phone close to it. The light turns green when it's ready.</div></div>`}</div>
+  <div class="mt-auto col"><button class="btn" data-act="setup1" ${f?"":"disabled"}>Continue</button>${f?"":`<button class="link" data-act="hubRetry">Can't find it? Try again</button>`}</div>`;
+}
+let hubT=null;
+function findHub(){ clearTimeout(hubT); hubT=setTimeout(()=>{ S.hubFound=true; if(S.screen==="hub") render(); },2200); }
+
+/* ---------- guided room capture ---------- */
+function capRooms(){
+  if(S.who==="alone") return ["Living room","Kitchen","Bedroom","Bathroom","Hallway and laundry"];
+  const n=S.who==="roommates"?S.roomies:1;
+  const rm=S.who==="roommates"?Array.from({length:n},(_,k)=>n>1?`Roommate ${k+1}'s room`:"Roommate's room"):["Second bedroom"];
+  return ["Living room","Kitchen","Your room","Your bathroom",...rm,"Hallway and laundry"];
+}
+function startCapture(){ go("capture",{cap:{i:0,n:0,done:[],skipped:[],total:0,mesh:0,scanning:false}}); }
+const PHOTO_MIN=12, PHOTO_GOAL=20;
+const photoTips=["Start in a corner and face the opposite wall.","Turn a little each time so photos overlap by about half.","Get the doorways in the shot. They link rooms together.","Step to the next corner and keep going.","Aim a few photos up at the ceiling edges.","Almost there. Catch anything behind furniture."];
+function scrCapture(){
+  const c=S.cap, rooms=capRooms(), room=rooms[c.i], lidar=S.scan==="lidar";
+  const chips=rooms.map((r,k)=>{const st=c.done.includes(k)?"done":c.skipped.includes(k)?"skip":k===c.i?"now":"";return `<span class="pill" style="white-space:nowrap;${st==="done"?"background:var(--greenBg);color:var(--green)":st==="skip"?"background:var(--soft);color:var(--muted);text-decoration:line-through":st==="now"?"background:var(--ink);color:#fff":"background:var(--soft);color:var(--ink2)"}">${st==="done"?"✓ ":""}${esc(r)}</span>`;}).join("");
+  const isRm=/Roommate|Second bedroom/.test(room);
+  const ready=lidar?c.mesh>=100:c.n>=PHOTO_MIN;
+  const view=lidar
+   ?`<div class="vf"><div class="grid"></div><div class="mesh" id="mesh" style="clip-path:inset(${100-c.mesh}% 0 0 0)"></div>${c.scanning||c.mesh?"":`<div class="vfMsg">Point at a wall and tap Start</div>`}<div class="vfTag">${c.mesh>=100?"Room captured ✓":c.scanning?"Move slowly · "+c.mesh+"%":"LiDAR ready"}</div></div>`
+   :`<div class="vf" id="vf"><div class="grid"></div><i class="cb tl"></i><i class="cb tr"></i><i class="cb bl"></i><i class="cb br"></i><div class="vfMsg" style="bottom:16px;top:auto">${photoTips[Math.min(photoTips.length-1,Math.floor(c.n/4))]}</div><div class="vfTag">${c.n} of ~${PHOTO_GOAL} photos</div></div>`;
+  const ctl=lidar
+   ?(c.mesh>=100?`<button class="btn" data-act="capNext">${c.i<rooms.length-1?"Next room: "+esc(rooms[c.i+1]):"Build my map"}</button>`
+     :`<button class="btn" data-act="capShot" ${c.scanning?"disabled":""}>${c.scanning?"Scanning…":"Start scanning this room"}</button>`)
+   :`<div class="row" style="justify-content:space-between"><div class="thumbs">${Array.from({length:Math.min(c.n,5)},()=>`<span></span>`).join("")}${c.n>5?`<b>+${c.n-5}</b>`:""}</div>
+      <button class="shutter" aria-label="Take photo" data-act="capShot"></button>
+      <button class="btn sm ${ready?"":"out"}" style="width:auto;padding:0 14px" data-act="capNext" ${ready?"":"disabled"}>${c.i<rooms.length-1?"Next room":"Done"}</button></div>
+     <div class="tiny muted" style="text-align:center">${ready?"That's enough for this room. More photos make it sharper.":`Take at least ${PHOTO_MIN-c.n} more`}</div>`;
+  return `<div class="between"><button class="link row" style="gap:2px;padding:0" data-act="capBack">${icons.back}Back</button><span class="small muted">Room ${c.i+1} of ${rooms.length}</span></div>
+  <div class="row" style="gap:6px;overflow-x:auto;flex-shrink:0;padding-bottom:2px">${chips}</div>
+  <div class="col" style="gap:4px"><h1>${esc(room)}</h1><div class="ink2" style="font-size:15px">${lidar?"Hold your phone at chest height and walk slowly along the walls.":"Stand in each corner and take photos all the way around."}</div></div>
+  ${isRm?`<div class="small" style="padding:10px 12px;border-radius:12px;background:#EFF6FF;color:var(--blueInk)">Ask first. If they'd rather you didn't, skip it. They can scan their own room from their phone after they join.</div>`:""}
+  ${view}
+  <div class="col" style="gap:8px">${ctl}<button class="link" style="min-height:36px;font-size:14px;color:var(--muted)" data-act="capSkipRoom">Skip this room</button></div>`;
+}
+let meshT=null;
+function wireCapture(){
+  const c=S.cap; clearInterval(meshT);
+  if(S.scan==="lidar"&&c.scanning&&c.mesh<100){
+    meshT=setInterval(()=>{ if(S.screen!=="capture"){clearInterval(meshT);return;} c.mesh=Math.min(100,c.mesh+5); if(c.mesh>=100){c.scanning=false;clearInterval(meshT);render();return;}
+      const m=$("#mesh"); if(m) m.style.clipPath=`inset(${100-c.mesh}% 0 0 0)`; const t=document.querySelector(".vfTag"); if(t) t.textContent="Move slowly · "+c.mesh+"%"; },180);
+  }
+}
+function capShot(){
+  const c=S.cap;
+  if(S.scan==="lidar"){ c.scanning=true; render(); return; }
+  c.n++; c.total++; const vf=$("#vf"); if(vf){vf.classList.remove("flash");void vf.offsetWidth;vf.classList.add("flash");}
+  setTimeout(()=>{ if(S.screen==="capture") render(); },120);
+}
+function capNext(skip){
+  const c=S.cap, rooms=capRooms();
+  if(skip){ if(!c.skipped.includes(c.i)) c.skipped.push(c.i); } else c.done.push(c.i);
+  if(c.i<rooms.length-1){ c.i++; c.n=0; c.mesh=0; c.scanning=false; render(); return; }
+  if(!c.done.length){ if(S.returnTo){ const r=S.returnTo; S.returnTo=null; if(S.hadMap) S.scan=S.hadMap; else S.scan="skip"; go("app",{tab:r}); toast("Nothing new scanned",S.hadMap?"Your old map is unchanged.":"You can scan anytime from Settings.",{icon:"ℹ️"}); return; }
+    S.scan="skip"; toast("No rooms scanned","You can scan later in Settings. The Rooms and Dots views still work.",{icon:"ℹ️"}); go("walk",{walks:0}); return; }
+  go("scanning");
+}
+
+/* ---------- label rooms ---------- */
+function scrLabel(){
+  const c=S.cap||{done:[],skipped:[]};
+  if(!S.labels) S.labels={a:S.who==="alone"?"mine":"mine",b:S.who==="alone"?"guest":"rm"};
+  const opts=(k)=>`<select data-act="labelSel" data-k="${k}">${[["mine","Your room"],...(S.who==="alone"?[]:[["rm","Roommate's room"]]),["guest","Guest room or office"],["empty","Empty / storage"]].map(([v,t])=>`<option value="${v}" ${S.labels[k]===v?"selected":""}>${t}</option>`).join("")}</select>`;
+  const skipped=c.skipped.length;
+  return `<div class="col" style="gap:6px"><h1>Is this your home?</h1><div class="ink2" style="font-size:15px">We found 6 rooms. Check the two bedrooms so alerts name the right room.</div></div>
+  <div style="border-radius:16px;overflow:hidden;border:1px solid var(--line);background:#FAFAFB;flex-shrink:0;position:relative"><img src="apt-3d.png" alt="3D map of the apartment from your scan" style="width:100%;display:block">
+   <span class="pin" style="left:54%;top:79%">A</span><span class="pin" style="left:10%;top:52%">B</span></div>
+  ${skipped?`<div class="small" style="padding:10px 12px;border-radius:12px;background:var(--orangeBg);color:var(--orangeInk)">You skipped ${skipped} room${skipped>1?"s":""}. They show as outlines until someone scans them.</div>`:""}
+  <div class="card"><div class="col" style="gap:4px"><label style="font-weight:600">Bedroom A <span class="muted small" style="font-weight:500">· pin A on the map</span></label>${opts("a")}</div>
+   <div class="hr"></div>
+   <div class="col" style="gap:4px"><label style="font-weight:600">Bedroom B <span class="muted small" style="font-weight:500">· pin B on the map</span></label>${opts("b")}</div></div>
+  <div class="card" style="gap:4px"><div class="between"><span style="font-weight:600">Front door</span><span class="pill" style="background:var(--greenBg);color:var(--green)">Found ✓</span></div><div class="small muted">Alerts start tracking from here.</div></div>
+  <div class="mt-auto col"><button class="btn" data-act="labelDone">${S.returnTo?"Save map":"Looks right"}</button><button class="link" data-act="startScan">Something's off? Scan again</button></div>`;
+}
+
+/* ---------- learn your walk ---------- */
+function scrWalk(){
+  const w=S.walks||0, busy=S.walking;
+  return `<div class="col" style="gap:6px"><div class="small muted" style="font-weight:600">Last thing</div><h1>Teach it your walk</h1><div class="ink2" style="font-size:15px">Everyone moves a little differently. Walk normally from the front door to your room so Wavelength can tell you apart from a stranger.</div></div>
+  <div class="card" style="align-items:center;text-align:center;gap:14px;padding:22px 16px">
+   <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="${w>=3?"#166534":"#1F2329"}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="${busy?"bob":""}"><circle cx="13" cy="4" r="2"/><path d="M11 22l2-6-3-3 1-5 4 3h3"/><path d="M8 11l-2 4"/><path d="M13 16l3 6"/></svg>
+   <div style="display:flex;gap:8px">${[0,1,2].map(k=>`<span style="width:56px;height:8px;border-radius:4px;background:${k<w?"#166534":"var(--line2)"};position:relative;overflow:hidden">${busy&&k===w?`<i class="walkfill"></i>`:""}</span>`).join("")}</div>
+   <div style="font-weight:600">${w>=3?"Got it. It knows your walk.":busy?`Walk ${w+1} of 3… head to your room`:`${w} of 3 walks done`}</div>
+   <div class="small muted">${w>=3?"It keeps getting better over the next few days.":"Go at your normal speed. Don't carry anything big."}</div></div>
+  ${S.who!=="alone"?`<div class="small muted">Your roommates do this on their own phone after they join. Until then, they may show as unrecognized when everyone else is away.</div>`:""}
+  <div class="mt-auto col">${w>=3?`<button class="btn" data-act="walkDone">Go to my home</button>`:`<button class="btn" data-act="walkGo" ${busy?"disabled":""}>${busy?"Walking…":w?"Do the next walk":"I'm at the front door. Start"}</button><button class="link" data-act="walkSkip">Skip. Let it learn on its own</button>`}</div>`;
+}
+function walkGo(){ S.walking=true; render(); setTimeout(()=>{ S.walking=false; S.walks=(S.walks||0)+1; if(S.screen==="walk") render(); },2600); }
+
+/* ---------- editing from Settings ---------- */
+function finishEdit(){ const r=S.returnTo||"settings"; S.returnTo=null; go("app",{tab:r}); toast("Saved","Your changes are live.",{icon:"✅"}); }
+
+/* ---------- invite sheet ---------- */
+function inviteSheet(){
+  const sh=$("#sheet");
+  sh.innerHTML=`<div style="align-self:center;width:40px;height:5px;border-radius:3px;background:var(--line)"></div>
+  <div style="font-size:20px;font-weight:700">Share your invite</div>
+  <div class="ink2" style="font-size:15px">Anyone with this link can ask to join your home. You approve them first, and the link stops working in 48 hours.</div>
+  <div class="row" style="padding:12px;border-radius:12px;background:var(--soft);font-family:ui-monospace,monospace;font-size:14px;justify-content:space-between">wavelength.app/join/K7Q-2XM</div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">${[["msg","💬","Messages"],["copy","🔗","Copy link"],["qr","▦","Show QR"]].map(([v,i,t])=>`<button class="btn out sm" style="flex-direction:column;min-height:70px;gap:4px;justify-content:center" data-act="shareVia" data-v="${v}"><span style="font-size:20px">${i}</span>${t}</button>`).join("")}</div>
+  <button class="link" data-act="closeSheet">Cancel</button>`;
+  $("#shade").classList.add("show"); sh.classList.add("show");
+}
+function shareDone(v){
+  closeSheet(); const n=S.who==="roommates"?S.roomies:1;
+  toast(v==="copy"?"Link copied":v==="qr"?"QR code shown":"Invite sent","Waiting for them to join…",{icon:"✉️"});
+  document.querySelectorAll("[id^=inv]").forEach(p=>{p.textContent="Invite sent";p.style.background="var(--orangeBg)";p.style.color="#9A3412";});
+  setTimeout(()=>{ S.joined=n; save(); if(S.screen==="setup2") render(); toast(`${S.who==="access"?"Your guest":n>1?"Your roommates":"Your roommate"} joined`,"They chose what you can see about them. You approved them automatically because they used your link.",{icon:"👋"}); },2200);
+}
+
+/* ---------- "that's someone I know" ---------- */
+let knownIdx=null;
+function knownSheet(i){
+  knownIdx=i; const sh=$("#sheet"); const e=S.log[i];
+  sh.innerHTML=`<div style="align-self:center;width:40px;height:5px;border-radius:3px;background:var(--line)"></div>
+  <div style="font-size:20px;font-weight:700">Who was it?</div>
+  <div class="small ink2">${esc(e.t)} · ${esc(e.rooms||"")}</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${["Maintenance or repair","Friend or family","Roommate's guest","Delivery or cleaner"].map(t=>`<button class="btn out sm pick" data-act="knownPick" data-v="${t}">${t}</button>`).join("")}</div>
+  <input id="knownName" placeholder="Or type a name (optional)" style="font:inherit;font-size:15px;padding:10px 12px;border:1px solid #B8BEC6;border-radius:10px;min-height:44px">
+  <label class="row" style="align-items:flex-start;font-size:15px"><input type="checkbox" id="knownRemember" checked style="margin-top:3px"><span class="col" style="gap:2px"><span style="font-weight:600">Remember their walk</span><span class="small muted">They won't set off alerts next time. Turn off for one-time visitors like a repair person.</span></span></label>
+  <button class="btn" data-act="knownSave">Save</button><button class="link" data-act="closeSheet">Cancel</button>`;
+  $("#shade").classList.add("show"); sh.classList.add("show");
+}
+function knownSave(){
+  const e=S.log[knownIdx]; if(!e) return closeSheet();
+  const who=($("#knownName").value||"").trim()||"Someone I know"; const rem=$("#knownRemember").checked;
+  e.marked=who+(rem?" · remembered":""); if(rem){ S.known=(S.known||[]).concat(who); }
+  closeSheet(); render();
+  toast("Marked as "+who, rem?"Their walk is saved. If they come back, you won't get an alert.":"Saved to your log. You'll still get alerts if they come back.",{icon:"✅"});
+}
+
 /* ---------- render ---------- */
 let replayTimer=null;
 function render(){
   stopReplay();
   const el=$("#screen"); const scr=S.screen;
   el.classList.toggle("grey", scr.startsWith("setup")||scr==="settings");
-  const map={intro:scrIntro,setup1:scrSetup1,setup2:scrSetup2,setup3:scrSetup3,scanning:scrScanning,app:()=>({live:scrHome,log:scrLog,settings:scrSettings,replay:scrReplay})[S.tab]()};
-  el.classList.toggle("grey", scr.startsWith("setup")||(scr==="app"&&S.tab==="settings"));
+  const map={intro:scrIntro,hub:scrHub,setup1:scrSetup1,setup2:scrSetup2,setup3:scrSetup3,capture:scrCapture,scanning:scrScanning,label:scrLabel,walk:scrWalk,app:()=>({live:scrHome,log:scrLog,settings:scrSettings,replay:scrReplay})[S.tab]()};
+  el.classList.toggle("grey", ["hub","setup1","setup2","setup3","label","walk"].includes(scr)||(scr==="app"&&S.tab==="settings"));
   el.innerHTML=map[scr]();
   el.scrollTop=0;
   if(scr==="scanning") runScan();
+  if(scr==="hub"&&!S.hubFound) findHub();
+  if(scr==="capture") wireCapture();
   if(scr==="app"&&S.tab==="replay") setupReplay();
   save();
 }
@@ -337,8 +508,10 @@ function go(screen,extra={}){ Object.assign(S,{screen},extra); render(); }
 /* ---------- scanning ---------- */
 function runScan(){
   let p=0; const img=$("#scanImg"); setTimeout(()=>img&&(img.style.opacity=.9),200);
-  const id=setInterval(()=>{ p+=4; const f=$("#scanFill"),t=$("#scanPct"); if(!f){clearInterval(id);return;} f.style.width=p+"%"; t.textContent=p+"%";
-    if(p>=100){ clearInterval(id); setTimeout(()=>go("app",{tab:"live",view:"3d"}),400); } },110);
+  const stages=S.scan==="photos"?[[0,"Matching photos"],[35,"Building room shapes"],[70,"Deleting photos"],[90,"Finishing up"]]:[[0,"Lining up rooms"],[50,"Smoothing walls"],[85,"Finishing up"]];
+  const step=S.scan==="photos"?3:4;
+  const id=setInterval(()=>{ p=Math.min(100,p+step); const f=$("#scanFill"),t=$("#scanPct"),st=$("#scanStage"); if(!f){clearInterval(id);return;} f.style.width=p+"%"; t.textContent=p+"%"; for(const[a,l] of stages) if(p>=a) st.textContent=l;
+    if(p>=100){ clearInterval(id); setTimeout(()=>go("label"),400); } },110);
 }
 
 /* ---------- replay ---------- */
@@ -414,18 +587,33 @@ document.addEventListener("click",ev=>{
     case "inc": case "dec": ev.stopPropagation(); { const k=el.dataset.k; S[k]=Math.max(1,Math.min(6,S[k]+(a==="inc"?1:-1))); render(); } break;
     case "pets": S.pets=el.checked; render(); break;
     case "see": S.see=v; save(); break;
-    case "invite": document.querySelectorAll("[id^=inv]").forEach(p=>{p.textContent="Invite sent";p.style.background="var(--orangeBg)";p.style.color="#9A3412";}); setTimeout(()=>document.querySelectorAll("[id^=inv]").forEach(p=>{p.textContent="Joined ✓";p.style.background="var(--greenBg)";p.style.color="var(--green)";}),1500); break;
+    case "invite": inviteSheet(); break;
+    case "invite_old": document.querySelectorAll("[id^=inv]").forEach(p=>{p.textContent="Invite sent";p.style.background="var(--orangeBg)";p.style.color="#9A3412";}); setTimeout(()=>document.querySelectorAll("[id^=inv]").forEach(p=>{p.textContent="Joined ✓";p.style.background="var(--greenBg)";p.style.color="var(--green)";}),1500); break;
     case "scanpick": S.scan=v; render(); break;
-    case "startScan": if(S.scan==="skip") go("app",{tab:"live",view:"rooms"}); else go("scanning"); break;
-    case "rescan": if(S.scan==="skip")S.scan="lidar"; go("scanning"); break;
+    case "startScan": if(S.scan==="skip"){ if(S.returnTo) finishEdit(); else go("walk",{walks:0}); } else startCapture(); break;
+    case "rescan": S.returnTo=v||"settings"; S.hadMap=S.scan==="skip"?null:S.scan; if(S.scan==="skip")S.scan="lidar"; go("setup3"); break;
+    case "hub": go("hub"); break;
+    case "hubRetry": S.hubFound=false; render(); break;
+    case "capShot": capShot(); break;
+    case "capNext": capNext(); break;
+    case "capSkipRoom": capNext(true); break;
+    case "capBack": go("setup3"); break;
+    case "labelDone": if(S.returnTo) finishEdit(); else go("walk",{walks:0}); break;
+    case "walkGo": walkGo(); break;
+    case "walkSkip": go("app",{tab:"live",view:S.scan==="skip"?"rooms":"3d"}); break;
+    case "walkDone": go("app",{tab:"live",view:S.scan==="skip"?"rooms":"3d"}); toast("You're all set","Wavelength is watching for strangers. It keeps learning walks over the next few days.",{icon:"✅"}); break;
+    case "saveEdit": finishEdit(); break;
+    case "shareVia": shareDone(el.dataset.v); break;
     case "tab": S.tab=v; render(); break;
     case "view": S.view=v; render(); break;
     case "replay": S.replayIdx=+el.dataset.i; S.tab="replay"; render(); break;
     case "play": togglePlay(); break;
     case "saveEvt": { const e=S.log[S.replayIdx]; if(e){e.saved=true; render();} } break;
     case "mark": S.log[+el.dataset.i].marked="Not okay, saved"; render(); break;
-    case "known": S.log[+el.dataset.i].marked="Someone I know"; render(); break;
-    case "editHouse": go("setup1"); break;
+    case "known": knownSheet(+el.dataset.i); break;
+    case "knownSave": knownSave(); break;
+    case "knownPick": document.querySelectorAll("[data-act=knownPick]").forEach(b=>b.classList.toggle("on",b===el)); $("#knownName").value=el.dataset.v; break;
+    case "editHouse": S.returnTo="settings"; go("setup1"); break;
     case "toggle": S.s[el.dataset.k]=el.checked; save(); if(el.dataset.k==="party") render(); break;
     case "set": if(el.type==="radio"){S.s[el.dataset.k]=el.dataset.v;save();} break;
     case "partyOn": S.s.party=true; S.s.offYour=$("#pOffYour").checked; S.s.offRoommate=$("#pOffRm").checked; closeSheet(); S.log.push({t:nowStr(),txt:"Party mode on · 7 people",c:"rm"}); S.screen="app"; S.tab="live"; render(); break;
@@ -437,6 +625,9 @@ document.addEventListener("click",ev=>{
     case "sim-room": strangerEvent(91,"Your room","Your room · just now"); break;
     case "sim-party": if(S.s.party){quietNote("Party mode is already on.");} else partySheet(); break;
     case "sim-roommate": S.roommateHome=true; S.log.push({t:nowStr(),txt:"Roommate home",c:"rm"}); refresh(); toast("Roommate is home","Matched by walk · 96% sure",{}); break;
+    case "sim-youhome": S.youHome=true; S.log.push({t:nowStr(),txt:"You home",c:"you"}); refresh(); toast("Welcome home",S.s.when==="away"?"Stranger alerts pause while you're here, because your Settings say only when everyone's away.":"Stranger alerts stay on because your Settings say anytime.",{icon:"🏠"}); break;
+    case "sim-leave": S.youHome=false; S.roommateHome=false; S.log.push({t:nowStr(),txt:"Everyone left · no one home",c:"you"}); refresh(); toast("No one is home","Wavelength will alert you about anyone it doesn't recognize.",{icon:"🔒"}); break;
+    case "sim-pet": refresh(); quietNote("Your pet walked through the living room. Pets don't set off alerts, so nothing was logged."); break;
     case "lock": showLock(); break;
     case "reset": if(confirmReset()){ try{localStorage.removeItem("wifiapp");}catch(e){} S=structuredClone(DEFAULT); closeSheet(); $("#lock").classList.remove("show"); render(); } break;
   }
@@ -453,6 +644,7 @@ document.addEventListener("change",ev=>{
   const el=ev.target, a=el.dataset.act;
   if(a==="set"&&el.tagName==="SELECT"){S.s[el.dataset.k]=el.value;save();}
   if(a==="seeSel"){S.see=el.value;save();}
+  if(a==="labelSel"){S.labels[el.dataset.k]=el.value;save();}
 });
 document.addEventListener("keydown",ev=>{ if((ev.key==="Enter"||ev.key===" ")&&ev.target.matches(".choice")){ev.preventDefault();ev.target.click();} });
 $("#shade").addEventListener("click",()=>closeSheet());
